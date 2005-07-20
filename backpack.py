@@ -83,9 +83,12 @@ class Backpack(object):
         """Get the time relative to the specified time (default to now).
 
            Allowed relative terms:
+           * fifteen
+           * nexthour
            * later
            * morning
            * afternoon
+           * evening
            * coupledays
            * nextweek"""
 
@@ -95,14 +98,30 @@ class Backpack(object):
         now=datetime.datetime.fromtimestamp(t)
         rv=t
 
-        if rel == 'later':
+        if rel == 'fifteen':
+            # Fifteen minutes later
+            rv += (15 * 60)
+        elif rel == 'later':
             # Two hours later
             rv += 7200
+        elif rel == 'nexthour':
+            # Top of next hour
+            # Increment by an hour
+            rv += 3600
+            # Increment an hour
+            then=datetime.datetime.fromtimestamp(rv)
+            # Then set the hour and minute
+            then=datetime.datetime(then.year, then.month, then.day, then.hour,
+                5, 0)
+            rv=time.mktime(then.timetuple())
         elif rel == 'morning':
             then=datetime.datetime(now.year, now.month, now.day, 9, 0, 0)
             rv=time.mktime(then.timetuple())
         elif rel == 'afternoon':
             then=datetime.datetime(now.year, now.month, now.day, 14, 0, 0)
+            rv=time.mktime(then.timetuple())
+        elif rel == 'evening':
+            then=datetime.datetime(now.year, now.month, now.day, 19, 0, 0)
             rv=time.mktime(then.timetuple())
         elif rel == 'coupledays':
             rv=t + (86400 * 2)

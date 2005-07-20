@@ -44,9 +44,12 @@ def card(id, title, s):
 def getNewForm():
     rv="""
 <select name="w" title="When">
+    <option value="fifteen">15 Minutes</option>
+    <option value="nexthour">Next hour</option>
     <option value="later">Later</option>
     <option value="morning">Morning</option>
     <option value="afternoon">Afternoon</option>
+    <option value="evening">Evening</option>
     <option value="coupledays">Couple Days</option>
     <option value="nextweek">Next Week</option>
 </select><br/>

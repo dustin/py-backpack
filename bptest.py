@@ -67,12 +67,18 @@ class BPTest(unittest.TestCase):
         # Alias
         relTime=self.bp.getRelativeTime
 
+        self.assertEquals(time.ctime(relTime("fifteen", earlyMorning)),
+            "Wed Jul 20 00:44:22 2005")
+        self.assertEquals(time.ctime(relTime("nexthour", earlyMorning)),
+            "Wed Jul 20 01:05:00 2005")
         self.assertEquals(time.ctime(relTime("later", earlyMorning)),
             "Wed Jul 20 02:29:22 2005")
         self.assertEquals(time.ctime(relTime("morning", earlyMorning)),
             "Wed Jul 20 09:00:00 2005")
         self.assertEquals(time.ctime(relTime("afternoon", earlyMorning)),
             "Wed Jul 20 14:00:00 2005")
+        self.assertEquals(time.ctime(relTime("evening", earlyMorning)),
+            "Wed Jul 20 19:00:00 2005")
         self.assertEquals(time.ctime(relTime("coupledays", earlyMorning)),
             "Fri Jul 22 00:29:22 2005")
         self.assertEquals(time.ctime(relTime("nextweek", earlyMorning)),
