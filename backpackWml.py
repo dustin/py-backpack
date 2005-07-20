@@ -40,16 +40,48 @@ def card(id, title, s):
     return """<card id="%(id)s" title="%(title)s"><p>%(s)s</p></card>""" % \
         {'id': id, 'title': title, 's': s}
 
-def doList(bp, fs):
-    reminders=bp.getUpcomingReminders()
-    out=""
-    for ts, id, message in reminders:
-        out += "<b>%s</b><br/>%s<br/>" % (time.ctime(ts), message)
+def getNewForm():
+    rv="""
+<select name="w" title="When">
+    <option value="later">Later</option>
+    <option value="morning">Morning</option>
+    <option value="afternoon">Afternoon</option>
+    <option value="coupledays">Couple Days</option>
+    <option value="nextweek">Next Week</option>
+</select><br/>
+Message: <input type="text" name="m"/><br/>
 
-    sendContent(wml(card("reminders", "Reminder list", out)))
+<anchor title="Schedule">
+    <go href="/cgi-bin/backpackWml.py" method="post">
+        <postfield name="when" value="$(w)"/>
+        <postfield name="msg" value="$(m)"/>
+        <postfield name="action" value="add"/>
+    </go>
+</anchor>
+"""
+    return rv
+
+def doList(bp, fs):
+    # reminders=bp.getUpcomingReminders()
+    reminders=[(1121849269.906671, 2828, "Test")]
+    out="Found %d reminders:<br/>" % (len(reminders))
+    for ts, id, message in reminders:
+        out += "<b>%s</b><br/>%s<br/>\n" % (time.ctime(ts), message)
+    out+='<a href="#new">Add a Reminder</a>'
+
+    sendContent(wml(card("reminders", "Reminder list", out)
+        + card("new", "New Reminder", getNewForm())))
 
 def doAdd(bp, fs):
-    pass
+    when=fs["when"].value
+    msg=fs["msg"].value
+
+    ts=bp.getRelativeTime(when)
+    formattedTs=bp.formatTime(ts)
+
+    bp.createReminder(msg, formattedTs)
+    sendContent(wml(card("added", "Added Reminder",
+        "Added a reminder for %s:  %s" % (time.ctime(ts), msg))))
 
 def doDelete(bp, fs):
     pass
