@@ -10,6 +10,7 @@ import os
 import sys
 import cgi
 import time
+import random
 import ConfigParser
 
 sys.path.append("/home/web/darcs/backpack")
@@ -52,12 +53,13 @@ def getNewForm():
 Message: <input type="text" name="m"/><br/>
 
 <anchor title="Schedule">
-    <go href="/cgi-bin/backpackWml.py?action=add" method="post">
+    <go href="/cgi-bin/backpackWml.py?r=%(rnd)d" method="post">
         <postfield name="when" value="$(w)"/>
         <postfield name="msg" value="$(m)"/>
+        <postfield name="action" value="add"/>
     </go>
 </anchor>
-"""
+""" % {'rnd': random.Random().randint(0,10000)}
     return rv
 
 def doList(bp, fs):
