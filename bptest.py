@@ -47,5 +47,45 @@ class BPTest(unittest.TestCase):
         ts=self.bp._parseTime("2005-02-02 13:35:35")
         self.assertEquals(time.ctime(ts), "Wed Feb  2 13:35:35 2005")
 
+    def testRelativeTime(self):
+        """Test relative time calculations"""
+        # the time at which I started writing this test
+        # (9 is today in the future)
+        earlyMorning=1121844562.8812749
+        # Later in the afternoon
+        afterNoon=1121887792.692405
+        # Evening
+        evening=1121909413.8556659
+
+        # Alias
+        relTime=self.bp.getRelativeTime
+
+        self.assertEquals(time.ctime(relTime("later", earlyMorning)),
+            "Wed Jul 20 02:29:22 2005")
+        self.assertEquals(time.ctime(relTime("morning", earlyMorning)),
+            "Wed Jul 20 09:00:00 2005")
+        self.assertEquals(time.ctime(relTime("afternoon", earlyMorning)),
+            "Wed Jul 20 14:00:00 2005")
+        self.assertEquals(time.ctime(relTime("coupledays", earlyMorning)),
+            "Fri Jul 22 00:29:22 2005")
+        self.assertEquals(time.ctime(relTime("nextweek", earlyMorning)),
+            "Wed Jul 27 00:29:22 2005")
+        # Later in the day...
+        self.assertEquals(time.ctime(relTime("morning", afterNoon)),
+            "Thu Jul 21 09:00:00 2005")
+        self.assertEquals(time.ctime(relTime("afternoon", afterNoon)),
+            "Wed Jul 20 14:00:00 2005")
+        # Still yet later
+        self.assertEquals(time.ctime(relTime("afternoon", evening)),
+            "Thu Jul 21 14:00:00 2005")
+
+    def testRelativeTimeDefault(self):
+        """Test a default relative time."""
+        # This test is not as predictable, so we can only ensure they're in the
+        # future.
+        now=time.time()
+        for rel in ["later", "morning", "afternoon", "coupledays", "nextweek"]:
+            self.failUnless(self.bp.getRelativeTime(rel) > now, rel)
+
 if __name__ == '__main__':
     unittest.main()

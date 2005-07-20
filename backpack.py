@@ -10,6 +10,7 @@ import os
 import sys
 import time
 import urllib2
+import datetime
 import exceptions
 import xml.dom.minidom
 
@@ -77,6 +78,44 @@ class Backpack(object):
     # Parse a timestamp
     def _parseTime(self, timeString):
         return(time.mktime(time.strptime(timeString, self.TIMEFMT)))
+
+    def getRelativeTime(self, rel, t=None):
+        """Get the time relative to the specified time (default to now).
+
+           Allowed relative terms:
+           * later
+           * morning
+           * afternoon
+           * coupledays
+           * nextweek"""
+
+        if t is None:
+            t=time.time()
+
+        now=datetime.datetime.fromtimestamp(t)
+        rv=t
+
+        if rel == 'later':
+            # Two hours later
+            rv += 7200
+        elif rel == 'morning':
+            then=datetime.datetime(now.year, now.month, now.day, 9, 0, 0)
+            rv=time.mktime(then.timetuple())
+        elif rel == 'afternoon':
+            then=datetime.datetime(now.year, now.month, now.day, 14, 0, 0)
+            rv=time.mktime(then.timetuple())
+        elif rel == 'coupledays':
+            rv=t + (86400 * 2)
+        elif rel == 'nextweek':
+            rv=t + (86400 * 7)
+        else:
+            raise ValueError("Unknown rel type:  " + rel)
+
+        # Make sure the time is in the relative future
+        while rv < t:
+            rv += 86400
+
+        return rv
 
     # parse the reminders xml
     def _parseReminders(self, document):
