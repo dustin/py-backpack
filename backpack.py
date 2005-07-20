@@ -117,6 +117,10 @@ class Backpack(object):
 
         return rv
 
+    def formatTime(self, t):
+        """Format a timestamp for an API call"""
+        return(time.strftime(self.TIMEFMT, time.localtime(t)))
+
     # parse the reminders xml
     def _parseReminders(self, document):
 

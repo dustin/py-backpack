@@ -47,6 +47,13 @@ class BPTest(unittest.TestCase):
         ts=self.bp._parseTime("2005-02-02 13:35:35")
         self.assertEquals(time.ctime(ts), "Wed Feb  2 13:35:35 2005")
 
+    def testTimeFormatting(self):
+        """Test the time formatter"""
+        # When I wrote this test
+        then=1121847564.8214879
+        s=self.bp.formatTime(then)
+        self.assertEquals(s, "2005-07-20 01:19:24")
+
     def testRelativeTime(self):
         """Test relative time calculations"""
         # the time at which I started writing this test
