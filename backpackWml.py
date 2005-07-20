@@ -52,10 +52,9 @@ def getNewForm():
 Message: <input type="text" name="m"/><br/>
 
 <anchor title="Schedule">
-    <go href="/cgi-bin/backpackWml.py" method="post">
+    <go href="/cgi-bin/backpackWml.py?action=add" method="post">
         <postfield name="when" value="$(w)"/>
         <postfield name="msg" value="$(m)"/>
-        <postfield name="action" value="add"/>
     </go>
 </anchor>
 """
