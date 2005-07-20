@@ -62,8 +62,7 @@ Message: <input type="text" name="m"/><br/>
     return rv
 
 def doList(bp, fs):
-    # reminders=bp.getUpcomingReminders()
-    reminders=[(1121849269.906671, 2828, "Test")]
+    reminders=bp.getUpcomingReminders()
     out="Found %d reminders:<br/>" % (len(reminders))
     for ts, id, message in reminders:
         out += "<b>%s</b><br/>%s<br/>\n" % (time.ctime(ts), message)
