@@ -54,6 +54,13 @@ def doAdd(bp, fs):
 def doDelete(bp, fs):
     pass
 
+def handleException(tvt):
+    """Print out any exception that may occur."""
+    type, value, tb = tvt
+
+    sendContent(wml(card("error", "Error",
+        "<b>Got an error:</b><br/>  %s" % (value,))))
+
 if __name__ == '__main__':
     fs=cgi.FieldStorage()
     bp=backpack.Backpack(conf.get("backpack", "url"),
@@ -63,4 +70,7 @@ if __name__ == '__main__':
 
     action=funcs[fs.getvalue("action", "list")]
 
-    action(bp, fs)
+    try:
+        action(bp, fs)
+    except:
+        handleException(sys.exc_info())
