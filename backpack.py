@@ -154,27 +154,29 @@ class Backpack(object):
         if at is None:
             if content[0] != '+':
                 raise ValueError("No at, and content not beginning with +")
-            val="""<reminder><content>%s</content></reminder>""" % (content,)
+            val="""<content>%s</content>""" % (content,)
         else:
-            val="<reminder><content>%s</content><remind_at>%s</remind_at>" \
+            val="<content>%s</content><remind_at>%s</remind_at>" \
                 % (content, at)
 
-        x=self.__call("/ws/reminders/create", val)
+        x=self.__call("/ws/reminders/create",
+            "<reminder>%s</reminder>" % (val,))
         return self._parseReminders(x)
 
     def updateReminder(self, id, content, at=None):
-        """Update the given reminder.  *** This isn't working for me. ***
+        """Update the given reminder.
 
            If a time is not given, only the content will be updated."""
 
         val=""
         if at is None:
-            val="""<reminder><content>%s</content></reminder>""" % (content,)
+            val="""<content>%s</content>""" % (content,)
         else:
-            val="<reminder><content>%s</content><remind_at>%s</remind_at>" \
+            val="<content>%s</content><remind_at>%s</remind_at>" \
                 % (content, at)
 
-        x=self.__call("/ws/reminders/update/%d" % (id, ), val)
+        x=self.__call("/ws/reminders/update/%d" % (id, ),
+            "<reminder>%s</reminder>" % (val, ))
         return self._parseReminders(x)
 
     def deleteReminder(self, id):
