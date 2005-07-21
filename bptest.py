@@ -26,14 +26,14 @@ class BPTest(unittest.TestCase):
 
     def testConstructors(self):
         """Test the constructors and data work the way I think they do"""
-        bp1=backpack.Backpack("x", "y")
+        bp1=backpack.BackpackAPI("x", "y")
         self.failIf(bp1.debug, "first debug is set")
 
-        bp2=backpack.Backpack("x", "y", True)
+        bp2=backpack.BackpackAPI("x", "y", True)
         self.failUnless(bp2.debug, "second debug is not set")
         self.failIf(bp1.debug, "first debug is set after second")
 
-        bp3=backpack.Backpack("x", "y")
+        bp3=backpack.BackpackAPI("x", "y")
         self.failIf(bp3.debug, "third debug is set")
 
     def testReminderParser(self):
@@ -49,7 +49,8 @@ class BPTest(unittest.TestCase):
     def testException(self):
         """Validate exception parsing"""
         try:
-            data=self.bp._parseDocument(self.getFileData("data/error404.xml"))
+            bpapi=backpack.BackpackAPI("x", "y")
+            data=bpapi._parseDocument(self.getFileData("data/error404.xml"))
             self.fail("Parsed 404 error into " + data.toprettyxml())
         except backpack.BackpackError, e:
             self.assertEquals(e.code, 404)
@@ -57,14 +58,16 @@ class BPTest(unittest.TestCase):
 
     def testTimeParsing(self):
         """Test the time parser"""
-        ts=self.bp._parseTime("2005-02-02 13:35:35")
+        bpapi=backpack.BackpackAPI("x", "y")
+        ts=bpapi._parseTime("2005-02-02 13:35:35")
         self.assertEquals(time.ctime(ts), "Wed Feb  2 13:35:35 2005")
 
     def testTimeFormatting(self):
         """Test the time formatter"""
         # When I wrote this test
         then=1121847564.8214879
-        s=self.bp.formatTime(then)
+        bpapi=backpack.BackpackAPI("x", "y")
+        s=bpapi.formatTime(then)
         self.assertEquals(s, "2005-07-20 01:19:24")
 
     def testRelativeTime(self):
@@ -78,7 +81,7 @@ class BPTest(unittest.TestCase):
         evening=1121909413.8556659
 
         # Alias
-        relTime=self.bp.getRelativeTime
+        relTime=self.bp.reminder.getRelativeTime
 
         self.assertEquals(time.ctime(relTime("fifteen", earlyMorning)),
             "Wed Jul 20 00:44:22 2005")
@@ -111,7 +114,7 @@ class BPTest(unittest.TestCase):
         # future.
         now=time.time()
         for rel in ["later", "morning", "afternoon", "coupledays", "nextweek"]:
-            self.failUnless(self.bp.getRelativeTime(rel) > now, rel)
+            self.failUnless(self.bp.reminder.getRelativeTime(rel) > now, rel)
 
 if __name__ == '__main__':
     unittest.main()

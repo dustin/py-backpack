@@ -29,7 +29,7 @@ class BackpackError(exceptions.Exception):
     def __repr__(self):
         return "<code=%d, msg=%s>" % (self.code, self.msg)
 
-class Backpack(object):
+class BackpackAPI(object):
     """Interface to the backpack API"""
 
     TIMEFMT="%Y-%m-%d %H:%M:%S"
@@ -144,12 +144,12 @@ class Backpack(object):
         """Format a timestamp for an API call"""
         return(time.strftime(self.TIMEFMT, time.localtime(t)))
 
-class Reminder(Backpack):
+class Reminder(BackpackAPI):
     """Backpack reminder API."""
 
     def __init__(self, u, k, debug=False):
         """Get a Reminders object to the given URL and key"""
-        Backpack.__init__(self, u, k, debug)
+        BackpackAPI.__init__(self, u, k, debug)
 
     # parse the reminders xml
     def _parseReminders(self, document):
@@ -212,3 +212,12 @@ class Reminder(Backpack):
     def delete(self, id):
         """Delete a reminder"""
         x=self._call("/ws/reminders/destroy/%d" % (id,))
+
+class Backpack(object):
+    """Interface to all of the backpack APIs."""
+
+    reminder=None
+
+    def __init__(self, url, key, debug=False):
+        """Initialize the backpack APIs."""
+        self.reminder=Reminder(url, key, debug)
