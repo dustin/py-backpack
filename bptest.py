@@ -24,10 +24,23 @@ class BPTest(unittest.TestCase):
         f.close()
         return r
 
+    def testConstructors(self):
+        """Test the constructors and data work the way I think they do"""
+        bp1=backpack.Backpack("x", "y")
+        self.failIf(bp1.debug, "first debug is set")
+
+        bp2=backpack.Backpack("x", "y", True)
+        self.failUnless(bp2.debug, "second debug is not set")
+        self.failIf(bp1.debug, "first debug is set after second")
+
+        bp3=backpack.Backpack("x", "y")
+        self.failIf(bp3.debug, "third debug is set")
+
     def testReminderParser(self):
         """Validate reminder parsing."""
-        data=self.bp._parseDocument(self.getFileData("data/reminders.xml"))
-        rv=self.bp._parseReminders(data)
+        reminder=backpack.Reminder("x", "y")
+        data=reminder._parseDocument(self.getFileData("data/reminders.xml"))
+        rv=reminder._parseReminders(data)
         expected=[
             (1121755020.0, 52373, 'Get API working.'),
             (1121763600.0, 52372, 'Be asleep.')]

@@ -66,7 +66,7 @@ Message: <input type="text" name="m"/><br/>
     return rv
 
 def doList(bp, fs):
-    reminders=bp.getUpcomingReminders()
+    reminders=bp.list()
     out="Found %d reminders:<br/>" % (len(reminders))
     for ts, id, message in reminders:
         out += "<b>%s</b><br/>%s<br/>\n" % (time.ctime(ts), message)
@@ -82,7 +82,7 @@ def doAdd(bp, fs):
     ts=bp.getRelativeTime(when)
     formattedTs=bp.formatTime(ts)
 
-    bp.createReminder(msg, formattedTs)
+    bp.create(msg, formattedTs)
     sendContent(wml(card("added", "Added Reminder",
         "Added a reminder for %s:  %s" % (time.ctime(ts), msg))))
 
@@ -98,7 +98,7 @@ def handleException(tvt):
 
 if __name__ == '__main__':
     fs=cgi.FieldStorage()
-    bp=backpack.Backpack(conf.get("backpack", "url"),
+    bp=backpack.Reminder(conf.get("backpack", "url"),
         conf.get("backpack", "key"))
 
     funcs={"list": doList, "add": doAdd, "delete": doDelete}

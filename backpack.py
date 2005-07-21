@@ -33,6 +33,9 @@ class Backpack(object):
     """Interface to the backpack API"""
 
     TIMEFMT="%Y-%m-%d %H:%M:%S"
+    debug=False
+    url=None
+    key=None
 
     def __init__(self, u, k, debug=False):
         """Get a Backpack object to the given URL and key"""
@@ -55,7 +58,8 @@ class Backpack(object):
                 str(er.firstChild.data))
         return document
 
-    def __call(self, path, data=""):
+    # Perform the actual call
+    def _call(self, path, data=""):
         p={'token':self.key, 'extra':data}
         reqData="""<request><token>%(token)s</token>%(extra)s</request>""" % p
         theUrl=self.url + path
@@ -140,6 +144,13 @@ class Backpack(object):
         """Format a timestamp for an API call"""
         return(time.strftime(self.TIMEFMT, time.localtime(t)))
 
+class Reminder(Backpack):
+    """Backpack reminder API."""
+
+    def __init__(self, u, k, debug=False):
+        """Get a Reminders object to the given URL and key"""
+        Backpack.__init__(self, u, k, debug)
+
     # parse the reminders xml
     def _parseReminders(self, document):
 
@@ -155,15 +166,15 @@ class Backpack(object):
 
         return rv
 
-    def getUpcomingReminders(self):
+    def list(self):
         """Get a list of upcoming reminders.
 
            Returns a list of (timestamp, id, message)"""
-        x=self.__call("/ws/reminders")
+        x=self._call("/ws/reminders")
 
         return self._parseReminders(x)
 
-    def createReminder(self, content, at=None):
+    def create(self, content, at=None):
         """Create a reminder with the given content.
 
            If a time is not given, the content is expected to start with the
@@ -178,11 +189,11 @@ class Backpack(object):
             val="<content>%s</content><remind_at>%s</remind_at>" \
                 % (content, at)
 
-        x=self.__call("/ws/reminders/create",
+        x=self._call("/ws/reminders/create",
             "<reminder>%s</reminder>" % (val,))
         return self._parseReminders(x)
 
-    def updateReminder(self, id, content, at=None):
+    def update(self, id, content, at=None):
         """Update the given reminder.
 
            If a time is not given, only the content will be updated."""
@@ -194,10 +205,10 @@ class Backpack(object):
             val="<content>%s</content><remind_at>%s</remind_at>" \
                 % (content, at)
 
-        x=self.__call("/ws/reminders/update/%d" % (id, ),
+        x=self._call("/ws/reminders/update/%d" % (id, ),
             "<reminder>%s</reminder>" % (val, ))
         return self._parseReminders(x)
 
-    def deleteReminder(self, id):
+    def delete(self, id):
         """Delete a reminder"""
-        x=self.__call("/ws/reminders/destroy/%d" % (id,))
+        x=self._call("/ws/reminders/destroy/%d" % (id,))
