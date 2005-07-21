@@ -94,7 +94,13 @@ class BackpackAPI(object):
            * afternoon
            * evening
            * coupledays
-           * nextweek"""
+           * nextweek
+        
+        >>> import time
+        >>> x=BackpackAPI("x", "y")
+        >>> time.ctime(x.getRelativeTime("fifteen", 1121844562.8812749))
+        'Wed Jul 20 00:44:22 2005'
+        """
 
         if t is None:
             t=time.time()
@@ -221,3 +227,7 @@ class Backpack(object):
     def __init__(self, url, key, debug=False):
         """Initialize the backpack APIs."""
         self.reminder=Reminder(url, key, debug)
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
