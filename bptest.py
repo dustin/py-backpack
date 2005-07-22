@@ -13,16 +13,20 @@ import xml.dom.minidom
 
 import backpack
 
-class BPTest(unittest.TestCase):
-
-    def setUp(self):
-        self.bp=backpack.Backpack("x", "y")
+class BaseCase(unittest.TestCase):
+    """Base case for all test cases."""
 
     def getFileData(self, p):
         f=open(p)
         r=f.read()
         f.close()
         return r
+
+class BackpackAPITest(BaseCase):
+    """Test the base backpack functionality."""
+
+    def setUp(self):
+        self.bp=backpack.Backpack("x", "y")
 
     def testConstructors(self):
         """Test the constructors and data work the way I think they do"""
@@ -35,16 +39,6 @@ class BPTest(unittest.TestCase):
 
         bp3=backpack.BackpackAPI("x", "y")
         self.failIf(bp3.debug, "third debug is set")
-
-    def testReminderParser(self):
-        """Validate reminder parsing."""
-        reminder=backpack.Reminder("x", "y")
-        data=reminder._parseDocument(self.getFileData("data/reminders.xml"))
-        rv=reminder._parseReminders(data)
-        expected=[
-            (1121755020.0, 52373, 'Get API working.'),
-            (1121763600.0, 52372, 'Be asleep.')]
-        self.assertEquals(rv, expected)
 
     def testException(self):
         """Validate exception parsing"""
@@ -115,6 +109,51 @@ class BPTest(unittest.TestCase):
         now=time.time()
         for rel in ["later", "morning", "afternoon", "coupledays", "nextweek"]:
             self.failUnless(self.bp.reminder.getRelativeTime(rel) > now, rel)
+
+
+class ReminderTest(BaseCase):
+    """Test reminder-specific stuff."""
+
+    def testReminderParser(self):
+        """Validate reminder parsing."""
+        reminder=backpack.ReminderAPI("x", "y")
+        data=reminder._parseDocument(self.getFileData("data/reminders.xml"))
+        rv=reminder._parseReminders(data)
+        expected=[
+            (1121755020.0, 52373, 'Get API working.'),
+            (1121763600.0, 52372, 'Be asleep.')]
+        self.assertEquals(rv, expected)
+
+class PageTest(BaseCase):
+    """Test the page code."""
+
+    def testPageListParser(self):
+        """Test the page list parser."""
+        page=backpack.PageAPI("x", "y")
+        data=page._parseDocument(self.getFileData("data/pages.xml"))
+        rv=page._parsePageList(data)
+
+
+    def testPageParser(self):
+        """Test the individual page parser."""
+        page=backpack.PageAPI("x", "y")
+        data=page._parseDocument(self.getFileData("data/page.xml"))
+        rv=page._parsePage(data)
+
+        self.assertEquals(rv.title, 'Ajax Summit')
+        self.assertEquals(rv.id, 1133)
+        self.assertEquals(rv.emailAddress, 'ry87ib@backpackit.com')
+        self.assertEquals(rv.body,
+            "With O'Reilly and Adaptive Path")
+        self.assertEquals(rv.notes, [(1020, 'Hotel',
+            1116114071.0, 'Staying at the Savoy')])
+        self.assertEquals(rv.incompleteItems, [(3308, 'See San Francisco')])
+        self.assertEquals(rv.completeItems, [
+            (3303, 'Meet interesting people'),
+            (3307, 'Present Backpack'), ])
+        self.assertEquals(rv.links, [(1141, 'Presentations')])
+        self.assertEquals(rv.tags, [(4, 'Technology'),
+            (5, 'Travel')])
 
 if __name__ == '__main__':
     unittest.main()

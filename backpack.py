@@ -146,11 +146,11 @@ class BackpackAPI(object):
         """Format a timestamp for an API call"""
         return(time.strftime(self.TIMEFMT, time.localtime(t)))
 
-class Reminder(BackpackAPI):
+class ReminderAPI(BackpackAPI):
     """Backpack reminder API."""
 
     def __init__(self, u, k, debug=False):
-        """Get a Reminders object to the given URL and key"""
+        """Get a Reminder object to the given URL and key"""
         BackpackAPI.__init__(self, u, k, debug)
 
     # parse the reminders xml
@@ -215,11 +215,182 @@ class Reminder(BackpackAPI):
         """Delete a reminder"""
         x=self._call("/ws/reminders/destroy/%d" % (id,))
 
+class Page(object):
+    """An individual page.
+
+    * Notes are in the form of (id, title, createdDate, msg).
+    * Complete and incomplete items are in the form of (id, text)
+    * Links are in the form of (id, title)
+    * Tags are in the form of (id, name)
+
+    """
+
+    title=None
+    id=None
+    emailAddress=None
+    body=None
+    notes=[]
+    completeItems=[]
+    incompleteItems=[]
+    links=[]
+    tags=[]
+
+class PageAPI(BackpackAPI):
+    """Backpack page API."""
+
+    def __init__(self, u, k, debug=False):
+        """Get a Page object to the given URL and key"""
+        BackpackAPI.__init__(self, u, k, debug)
+
+    # parse the page list xml
+    def _parsePageList(self, document):
+        rv=[]
+        reminders=document.getElementsByTagName("page")
+        for r in reminders:
+            id=int(r.getAttribute("id"))
+            scope=str(r.getAttribute("scope"))
+            title=str(r.getAttribute("title"))
+
+            rv.append((id, scope, title))
+
+        return rv
+
+    # get an iterator on the named node of the zeroth node of the given list
+    def __linkIter(self, node, container, elementname):
+        rv=[]
+        nlist=node.getElementsByTagName(container)
+        if len(nlist) > 0:
+            rv=nlist[0].getElementsByTagName(elementname)
+        return rv
+
+    # Parse the individual page xml
+    def _parsePage(self, document):
+        rv=Page()
+        page=document.getElementsByTagName("page")[0]
+
+        rv.title=page.getAttribute("title")
+        rv.id=int(page.getAttribute("id"))
+        rv.emailAddress=page.getAttribute("email_address")
+
+        desc=page.getElementsByTagName("description")[0]
+        rv.body=str(desc.firstChild.data).strip()
+
+        for note in self.__linkIter(page, "notes", "note"):
+            rv.notes.append( (int(note.getAttribute("id")),
+                str(note.getAttribute("title")),
+                self._parseTime(note.getAttribute("created_at")),
+                str(note.firstChild.data).strip()))
+
+        # Parse a task list into a destination list
+        def parseItems(n, which, destList):
+            for item in self.__linkIter(n, which, "item"):
+                destList.append( (int(item.getAttribute("id")),
+                    str(item.firstChild.data).strip()))
+
+        items=page.getElementsByTagName("items")
+        if len(items) > 0:
+            parseItems(items[0], "incomplete", rv.incompleteItems)
+            parseItems(items[0], "completed", rv.completeItems)
+
+        for link in self.__linkIter(page, "linked_pages", "page"):
+            rv.links.append( (int(link.getAttribute("id")),
+                str(link.getAttribute("title"))))
+
+        for tag in self.__linkIter(page, "tags", "tag"):
+            rv.tags.append( (int(tag.getAttribute("id")),
+                str(tag.getAttribute("name"))))
+
+        return rv
+
+    def list(self):
+        """List all pages
+        
+           Returns a list of (id, scope, title) tuples.
+        """
+        x=self._call("/ws/pages/all")
+
+        return self._parsePageList(x)
+
+    def get(self, id):
+        """Get a given page by id.
+        
+           Returns a Page instance.
+        """
+        x=self._call("/ws/page/%d" % (id,))
+
+        return self._parsePage(x)
+
+    def create(self, title, description):
+        """Create a new page.
+
+           Returns (id, title)"""
+
+        data="<page><title>%s</title><description>%s</description></page>" \
+            % (title, description)
+        x=self._call("/ws/pages/new", data)
+
+        p=x.getElementsByTagName("page")[0]
+        return (int(p.getAttribute("id")), str(p.getAttribute("title")))
+
+    def delete(self, id):
+        """Delete a page"""
+        x=self._call("/ws/page/%d/destroy" % (id,))
+
+    def updateTitle(self, id, title):
+        """Update a title"""
+        data="<page><title>%s</title></page>" % (title,)
+        x=self._call("/ws/page/%d/update_title" % (id,), data)
+
+    def updateDescription(self, id, desc):
+        """Update a description"""
+        data="<page><description>%s</description></page>" % (desc,)
+        x=self._call("/ws/page/%d/update_body" % (id,), data)
+
+    def duplicate(self, id):
+        """Duplicate a page, get the new (id, title)"""
+        x=self._call("/ws/page/%d/duplicate" % (id,))
+
+        p=x.getElementsByTagName("page")[0]
+        return (int(p.getAttribute("id")), str(p.getAttribute("title")))
+
+    def linkTo(self, id, linkId):
+        """Link a page to another page."""
+        data="<linked_page_id>%d</linked_page_id>" % (linkId,)
+        x=self._call("/ws/page/%d/link" % (id,), data)
+
+    def unlink(self, id, linkId):
+        """Unlink a page from another page."""
+        data="<linked_page_id>%d</linked_page_id>" % (linkId,)
+        x=self._call("/ws/page/%d/unlink" % (id,), data)
+
+    def share(self, id, emailAddresses=[], isPublic=False):
+        """Share this page with others."""
+        data=""
+        if len(emailAddresses) > 0:
+            data+="<email_addresses>%s</email_addresses>" \
+                % (' '.join(emailAddresses),)
+        data+="<page><public>%d</public></page>" % (isPublic,)
+        x=self._call("/ws/page/%d/share" % (id,), data)
+
+    def unshare(self, id):
+        """Unshare a page."""
+        x=self._call("/ws/page/%d/unshare_friend_page" % (id,))
+
+    def email(self, id):
+        """Email yourself a page."""
+        x=self._call("/ws/page/%d/email" % (id,))
+
 class Backpack(object):
-    """Interface to all of the backpack APIs."""
+    """Interface to all of the backpack APIs.
+
+       * pages - PageAPI object
+       * reminder - ReminderAPI object
+    
+    """
 
     reminder=None
 
     def __init__(self, url, key, debug=False):
         """Initialize the backpack APIs."""
-        self.reminder=Reminder(url, key, debug)
+        self.reminder=ReminderAPI(url, key, debug)
+        self.page=PageAPI(url, key, debug)
