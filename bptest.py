@@ -84,7 +84,7 @@ class BackpackAPITest(BaseCase):
         self.assertEquals(time.ctime(relTime("later", earlyMorning)),
             "Wed Jul 20 02:29:22 2005")
         self.assertEquals(time.ctime(relTime("morning", earlyMorning)),
-            "Wed Jul 20 09:00:00 2005")
+            "Wed Jul 20 10:00:00 2005")
         self.assertEquals(time.ctime(relTime("afternoon", earlyMorning)),
             "Wed Jul 20 14:00:00 2005")
         self.assertEquals(time.ctime(relTime("evening", earlyMorning)),
@@ -95,7 +95,7 @@ class BackpackAPITest(BaseCase):
             "Wed Jul 27 00:29:22 2005")
         # Later in the day...
         self.assertEquals(time.ctime(relTime("morning", afterNoon)),
-            "Thu Jul 21 09:00:00 2005")
+            "Thu Jul 21 10:00:00 2005")
         self.assertEquals(time.ctime(relTime("afternoon", afterNoon)),
             "Wed Jul 20 14:00:00 2005")
         # Still yet later

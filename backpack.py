@@ -91,7 +91,7 @@ class BackpackAPI(object):
             * fifteen - fifteen minutes from now
             * nexthour - five minutes after the beginning of the next hour
             * later - two hours from now
-            * morning - 09:00
+            * morning - 10:00
             * afternoon - 14:00
             * evening - 19:00
             * coupledays - two days from now
@@ -121,7 +121,7 @@ class BackpackAPI(object):
                 5, 0)
             rv=time.mktime(then.timetuple())
         elif rel == 'morning':
-            then=datetime.datetime(now.year, now.month, now.day, 9, 0, 0)
+            then=datetime.datetime(now.year, now.month, now.day, 10, 0, 0)
             rv=time.mktime(then.timetuple())
         elif rel == 'afternoon':
             then=datetime.datetime(now.year, now.month, now.day, 14, 0, 0)
