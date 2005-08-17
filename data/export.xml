@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<backpack username="dustinspy">
+  <pages>
+<page title="Backpack API" id="173034" email_address="wayne31bella@dustinspy.backpackit.com">
+  <description>Stuff I need to do to complete the "backpack API":http://www.backpackit.com/api/ .</description>
+  <items>
+<item completed="false" id="781792">List API.</item><item completed="false" id="781793">&amp;rarr; list for page</item><item completed="false" id="781796">&amp;rarr; create item</item><item completed="false" id="781797">&amp;rarr; update item</item><item completed="false" id="781798">&amp;rarr; toggle item</item><item completed="false" id="781801">&amp;rarr; destroy item</item><item completed="false" id="781803">&amp;rarr; move item</item><item completed="false" id="781812">Notes API.</item><item completed="false" id="781816">&amp;rarr; list</item><item completed="false" id="781819">&amp;rarr; create</item><item completed="false" id="781820">&amp;rarr; update</item><item completed="false" id="781827">&amp;rarr; destroy</item><item completed="false" id="781830">Tags API.</item><item completed="false" id="781831">&amp;rarr; get pages for a tag</item><item completed="false" id="781832">&amp;rarr; tag a page</item><item completed="false" id="781833">Emails</item><item completed="false" id="781834">&amp;rarr; list for page</item><item completed="false" id="781835">&amp;rarr; get</item><item completed="false" id="781836">&amp;rarr; delete</item><item completed="false" id="781837">Export</item>  </items>
+</page>
+<page title="Home page" id="166626" email_address="zacharia72winfred@dustinspy.backpackit.com">
+  <description>!http://bleu.west.spy.net/~dustin/images/spyvspy2.var!</description>
+  <items>
+<item completed="false" id="913556">Make a todo list.</item><item completed="false" id="916954">spy.jar bugs</item><item completed="false" id="913581">Finish backpack API</item><item completed="false" id="935982">New backup implementation</item><item completed="false" id="946323">xml checksum thing</item><item completed="true" id="946392">Fix temperature reports</item>  </items>
+</page>
+<page title="New Backup Implementation" id="201574" email_address="nelson74lattie@dustinspy.backpackit.com">
+  <description>I would like to begin a rewrite of my backup software.  The purpose of this rewrite is to make it a bit easier to configure as well as distribute.  I'd also like to fix up a couple of inconveniences along the way.</description>
+  <items>
+<item completed="false" id="936703">Chunked data storage</item><item completed="false" id="936704">block encrypt engine</item><item completed="false" id="936706">linker</item><item completed="true" id="935983">Python digest block class.</item>  </items>
+</page>
+<page title="Places to Go" id="200381" email_address="clint06elvira@dustinspy.backpackit.com">
+  <items>
+<item completed="false" id="928967">David suggested "Markleeville":http://www.alpinecounty.com/markleeville.html for camping.</item><item completed="false" id="929566">"Corpse Exhibit-SF":http://www.theuniversewithin.org/</item>  </items>
+</page>
+<page title="spy.jar" id="198053" email_address="adolph78bulah@dustinspy.backpackit.com">
+  <description>Here are some spy.jar bugs that need to be fixed.
+
+!http://bleu.west.spy.net/~dustin/images/spyvspy2.var!
+!http://www.swarthmore.edu/Humanities/kjohnso1/pictures/jar.jpg!</description>
+  <items>
+<item completed="false" id="916988">Fix ThreadPool task sleep loop</item>  </items>
+</page>
+<page title="Work Stuff" id="202561" email_address="melvin08alvira@dustinspy.backpackit.com">
+</page>
+  </pages>
+  <reminders>
+<reminder remind_at="2005-07-18 07:01:00" id="51604">Make sure backpack reminders aren't filtered</reminder><reminder remind_at="2005-07-18 17:35:00" id="51613">Clean up email.</reminder><reminder remind_at="2005-07-18 20:57:00" id="52079">Status in workshop.</reminder><reminder remind_at="2005-07-19 06:37:00" id="52373">Get API working.</reminder><reminder remind_at="2005-07-19 08:38:00" id="52403">test reminder via phone</reminder>  </reminders>
+</backpack>

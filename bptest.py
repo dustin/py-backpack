@@ -133,7 +133,6 @@ class PageTest(BaseCase):
         data=page._parseDocument(self.getFileData("data/pages.xml"))
         rv=page._parsePageList(data)
 
-
     def testPageParser(self):
         """Test the individual page parser."""
         page=backpack.PageAPI("x", "y")
@@ -154,6 +153,24 @@ class PageTest(BaseCase):
         self.assertEquals(rv.links, [(1141, 'Presentations')])
         self.assertEquals(rv.tags, [(4, 'Technology'),
             (5, 'Travel')])
+
+class ExportTest(BaseCase):
+    """Test the backup code."""
+
+    def testExportParser(self):
+        """Test the export parser doesn't break."""
+        exp=backpack.ExportAPI("x", "y")
+        data=exp._parseDocument(self.getFileData("data/export.xml"))
+        pages, reminders=exp._parseBackup(data)
+        expectedPageIds=[173034, 166626, 201574, 200381, 198053, 202561]
+        expectedPageIds.sort()
+        gotPageIds=[x[0] for x in pages]
+        gotPageIds.sort()
+        self.assertEquals(gotPageIds, expectedPageIds)
+
+        expectedReminderIds=[51604, 51613, 52079, 52373, 52403]
+        gotReminderIds=[x[1] for x in reminders]
+        self.assertEquals(gotReminderIds, expectedReminderIds)
 
 if __name__ == '__main__':
     unittest.main()

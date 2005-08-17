@@ -380,18 +380,45 @@ class PageAPI(BackpackAPI):
         """Email yourself a page."""
         x=self._call("/ws/page/%d/email" % (id,))
 
+class ExportAPI(PageAPI, ReminderAPI):
+    """Export page API."""
+
+    def __init__(self, u, k, debug=False):
+        """Get an Export object to the given URL and key"""
+        BackpackAPI.__init__(self, u, k, debug)
+
+    def _parseDocument(self, docString):
+        document=xml.dom.minidom.parseString(docString)
+        responseEl=document.getElementsByTagName("backpack")[0]
+        return document
+
+    def _parseBackup(self, x):
+        return self._parsePageList(x), self._parseReminders(x)
+
+    def export(self):
+        """Get export of all data from BackPack
+
+        returns (pages, reminders)
+        """
+        x=self._call("/ws/account/export")
+
+        return(self._parseBackup(x))
+
 class Backpack(object):
     """Interface to all of the backpack APIs.
 
        * page - PageAPI object
        * reminder - ReminderAPI object
+       * export - ExportAPI object
     
     """
 
     reminder=None
     page=None
+    export=None
 
     def __init__(self, url, key, debug=False):
         """Initialize the backpack APIs."""
         self.reminder=ReminderAPI(url, key, debug)
         self.page=PageAPI(url, key, debug)
+        self.export=ExportAPI(url, key, debug)
