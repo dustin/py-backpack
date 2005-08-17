@@ -383,12 +383,13 @@ class PageAPI(BackpackAPI):
 class Backpack(object):
     """Interface to all of the backpack APIs.
 
-       * pages - PageAPI object
+       * page - PageAPI object
        * reminder - ReminderAPI object
     
     """
 
     reminder=None
+    page=None
 
     def __init__(self, url, key, debug=False):
         """Initialize the backpack APIs."""
