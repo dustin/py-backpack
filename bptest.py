@@ -172,5 +172,16 @@ class ExportTest(BaseCase):
         gotReminderIds=[x[1] for x in reminders]
         self.assertEquals(gotReminderIds, expectedReminderIds)
 
+class ListTest(BaseCase):
+    """Test the list code."""
+
+    def testListParser(self):
+        """Test the list lister."""
+        l=backpack.ListAPI("x", "y")
+        data=l._parseDocument(self.getFileData("data/list.xml"))
+        items=l._parseList(data)
+        self.assertEquals(len([i for i in items if not i[1]]), 19)
+        self.assertEquals(len([i for i in items if i[1]]), 1)
+
 if __name__ == '__main__':
     unittest.main()

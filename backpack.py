@@ -404,21 +404,80 @@ class ExportAPI(PageAPI, ReminderAPI):
 
         return(self._parseBackup(x))
 
+class ListAPI(BackpackAPI):
+    """Backpack list API."""
+
+    MOVE_LOWER='move_lower'
+
+    MOVE_HIGHER='move_higher'
+
+    MOVE_TO_TOP='move_to_top'
+
+    MOVE_TO_BOTTOM='move_to_bottom'
+
+    def __init__(self, u, k, debug=False):
+        """Get a ListAPI object to the given URL and key"""
+        BackpackAPI.__init__(self, u, k, debug)
+
+    def _parseList(self, x):
+        rv=[]
+        for item in x.getElementsByTagName("item"):
+            rv.append((int(item.getAttribute("id")),
+                item.getAttribute("completed") == "true",
+                str(item.firstChild.data)))
+        return rv
+
+    def list(self, pageId):
+        """Get a list of the items on the given page.
+
+        list of (id, completedBoolean, text)
+        """
+        x=self._call("/ws/page/%d/items/list" % pageId)
+        return self._parseList(x)
+
+    def create(self, pageId, text):
+        """Create a new entry.
+        Return (id, completedBoolean, text)"""
+        data="<item><content>%s</content></item>" % (text,)
+        x=self._call("/ws/page/%d/items/add" % (pageId,), data)
+        return self._parseList(x)[0]
+
+    def update(self, pageId, id, text):
+        """Update an entry."""
+        data="<item><content>%s</content></item>" % (text,)
+        x=self._call("/ws/page/%d/items/update/%d" % (pageId, id), data)
+
+    def toggle(self, pageId, id):
+        """Toggle an entry."""
+        x=self._call("/ws/page/%d/items/toggle/%d" % (pageId, id))
+
+    def destroy(self, pageId, id):
+        """Destroy an entry."""
+        x=self._call("/ws/page/%d/items/destroy/%d" % (pageId, id))
+
+    def move(self, pageId, id, direction):
+        """Move an entry."""
+        data="<direction>%s</direction>" % (direction,)
+        x=self._call("/ws/page/%d/items/move/%d" % (pageId, id), data)
+
 class Backpack(object):
     """Interface to all of the backpack APIs.
 
        * page - PageAPI object
        * reminder - ReminderAPI object
+       * list - ListAPI object
        * export - ExportAPI object
     
     """
 
     reminder=None
     page=None
+    list=None
     export=None
 
     def __init__(self, url, key, debug=False):
         """Initialize the backpack APIs."""
         self.reminder=ReminderAPI(url, key, debug)
         self.page=PageAPI(url, key, debug)
+        self.list=ListAPI(url, key, debug)
         self.export=ExportAPI(url, key, debug)
