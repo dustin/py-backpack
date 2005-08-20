@@ -183,5 +183,17 @@ class ListTest(BaseCase):
         self.assertEquals(len([i for i in items if not i[1]]), 19)
         self.assertEquals(len([i for i in items if i[1]]), 1)
 
+class NotesTest(BaseCase):
+    """Test the notes code."""
+
+    def testNoteListParser(self):
+        """Test the notes list parser."""
+        n=backpack.NoteAPI("x", "y")
+        data=n._parseDocument(self.getFileData("data/notelist.xml"))
+        notes=n._parseNotes(data)
+
+        expected=[(263366, 'Test Note', 1124528874.0, 'This is a test note.')]
+        self.assertEquals(notes, expected)
+
 if __name__ == '__main__':
     unittest.main()

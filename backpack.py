@@ -263,6 +263,15 @@ class PageAPI(BackpackAPI):
             rv=nlist[0].getElementsByTagName(elementname)
         return rv
 
+    def _parseNotes(self, document):
+        rv=[]
+        for note in document.getElementsByTagName("note"):
+            rv.append( (int(note.getAttribute("id")),
+                str(note.getAttribute("title")),
+                self._parseTime(note.getAttribute("created_at")),
+                str(note.firstChild.data).strip()))
+        return rv
+
     # Parse the individual page xml
     def _parsePage(self, document):
         rv=Page()
@@ -275,11 +284,7 @@ class PageAPI(BackpackAPI):
         desc=page.getElementsByTagName("description")[0]
         rv.body=str(desc.firstChild.data).strip()
 
-        for note in self.__linkIter(page, "notes", "note"):
-            rv.notes.append( (int(note.getAttribute("id")),
-                str(note.getAttribute("title")),
-                self._parseTime(note.getAttribute("created_at")),
-                str(note.firstChild.data).strip()))
+        rv.notes=self._parseNotes(page)
 
         # Parse a task list into a destination list
         def parseItems(n, which, destList):
@@ -460,6 +465,37 @@ class ListAPI(BackpackAPI):
         data="<direction>%s</direction>" % (direction,)
         x=self._call("/ws/page/%d/items/move/%d" % (pageId, id), data)
 
+class NoteAPI(PageAPI):
+    """API to Backpack Notes for a page."""
+
+    def __init__(self, u, k, debug=False):
+        """Get a NoteAPI object to the given URL and key"""
+        PageAPI.__init__(self, u, k, debug)
+
+    def list(self, pageId):
+        """Get a list of the items on the given page.
+
+        list of (id, title, timestamp, text)
+        """
+        x=self._call("/ws/page/%d/notes/list" % pageId)
+        return self._parseNotes(x)
+
+    def create(self, pageId, title, body):
+        """Create a new entry.
+        Return (id, title, timestamp, text)"""
+        data="<note><title>%s</title><body>%s</body></note>" % (title, body)
+        x=self._call("/ws/page/%d/notes/create" % (pageId,), data)
+        return self._parseNotes(x)[0]
+
+    def update(self, pageId, noteId, title, body):
+        """Update an entry."""
+        data="<note><title>%s</title><body>%s</body></note>" % (title, body)
+        x=self._call("/ws/page/%d/notes/update/%d" % (pageId, noteId), data)
+
+    def destroy(self, pageId, noteId):
+        """Update an entry."""
+        x=self._call("/ws/page/%d/notes/destroy/%d" % (pageId, noteId))
+
 class Backpack(object):
     """Interface to all of the backpack APIs.
 
@@ -473,6 +509,7 @@ class Backpack(object):
     reminder=None
     page=None
     list=None
+    notes=None
     export=None
 
     def __init__(self, url, key, debug=False):
@@ -480,4 +517,5 @@ class Backpack(object):
         self.reminder=ReminderAPI(url, key, debug)
         self.page=PageAPI(url, key, debug)
         self.list=ListAPI(url, key, debug)
+        self.notes=NoteAPI(url, key, debug)
         self.export=ExportAPI(url, key, debug)
