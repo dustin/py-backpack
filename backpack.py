@@ -502,6 +502,7 @@ class Backpack(object):
        * page - PageAPI object
        * reminder - ReminderAPI object
        * list - ListAPI object
+       * notes - NoteAPI object
        * export - ExportAPI object
     
     """
