@@ -9,6 +9,7 @@ Copyright (c) 2005  Dustin Sallings <dustin@spy.net>
 import sys
 import time
 import unittest
+import exceptions
 import xml.dom.minidom
 
 import backpack
@@ -215,6 +216,33 @@ class EmailTest(BaseCase):
         email=e._parseEmails(data)[0]
         expected=(17507, 'test backpack email 2', 1124529799.0)
         self.assertEquals(email[0:-1], expected)
+
+class TagTest(BaseCase):
+    """Test the tagging code."""
+
+    def testCleaning(self):
+        """Test the tag cleaner code."""
+        t=backpack.TagAPI("x", "y")
+        cleaned=t._cleanTags(["a", "abc", "abc def"])
+        expected=["a", "abc", '"abc def"']
+        self.assertEquals(cleaned, expected)
+
+    def testBadCleaning(self):
+        """Test the tag cleaner with invalid input."""
+        t=backpack.TagAPI("x", "y")
+        try:
+            cleaned=t._cleanTags(["a", '"bc d"'])
+            self.fail("Cleaned tags that shouldn't be cleaned:  " + `cleaned`)
+        except exceptions.ValueError, e:
+            self.assertEquals("Tags can't have quotes.", str(e))
+
+    def testPagesForTagParse(self):
+        """Test parsing pages for tag response."""
+        t=backpack.TagAPI("x", "y")
+        data=t._parseDocument(self.getFileData("data/pagesfortag.xml"))
+        results=t._parseTaggedPageList(data)
+        expected=[(173034, 'Backpack API'), (18852, 'Nonsense')]
+        self.assertEquals(results, expected)
 
 if __name__ == '__main__':
     unittest.main()

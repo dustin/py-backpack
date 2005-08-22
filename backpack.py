@@ -532,6 +532,45 @@ class EmailAPI(BackpackAPI):
         """Delete an email."""
         x=self._call("/ws/page/%d/emails/destroy/%d" % (pageId, mailId))
 
+class TagAPI(BackpackAPI):
+    """The Backpack Tags API."""
+
+    def __init__(self, u, k, debug=False):
+        """Get a TagAPI object to the given URL and key"""
+        BackpackAPI.__init__(self, u, k, debug)
+
+    def _parseTaggedPageList(self, x):
+        rv=[]
+        for item in x.getElementsByTagName("page"):
+            rv.append((int(item.getAttribute("id")),
+                str(item.getAttribute("title"))))
+        return rv
+
+    def pagesForTag(self, tagId):
+        """Get a list of the pages with a given tag ID.
+        
+        return a list of (id, title)
+        """
+        x=self._call("/ws/tags/select/%d" % tagId)
+        return self._parseTaggedPageList(x)
+
+    def _cleanTags(self, tags):
+        """Clean the given tags for API invocation."""
+        cleanedTags=[]
+        for t in tags:
+            if t.find('"') != -1:
+                raise exceptions.ValueError("Tags can't have quotes.")
+            if t.find(' ') != -1:
+                cleanedTags.append('"%s"' % t)
+            else:
+                cleanedTags.append(t)
+        return cleanedTags
+
+    def tagPage(self, pageId, tags):
+        """Tag a page with a list of words."""
+        data="<tags>%s</tags>" % ' '.join(self._cleanTags(tags))
+        x=self._call("/ws/page/%d/tags/tag" % pageId, data)
+
 class Backpack(object):
     """Interface to all of the backpack APIs.
 
@@ -539,8 +578,9 @@ class Backpack(object):
        * reminder - ReminderAPI object
        * list - ListAPI object
        * notes - NoteAPI object
+       * tags - TagAPI object
+       * email - EmailAPI object
        * export - ExportAPI object
-    
     """
 
     reminder=None
@@ -548,6 +588,7 @@ class Backpack(object):
     list=None
     notes=None
     email=None
+    tags=None
     export=None
 
     def __init__(self, url, key, debug=False):
@@ -557,4 +598,5 @@ class Backpack(object):
         self.list=ListAPI(url, key, debug)
         self.notes=NoteAPI(url, key, debug)
         self.email=EmailAPI(url, key, debug)
+        self.tags=TagAPI(url, key, debug)
         self.export=ExportAPI(url, key, debug)
