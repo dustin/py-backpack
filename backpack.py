@@ -488,12 +488,12 @@ class NoteAPI(PageAPI):
         return self._parseNotes(x)[0]
 
     def update(self, pageId, noteId, title, body):
-        """Update an entry."""
+        """Update a note."""
         data="<note><title>%s</title><body>%s</body></note>" % (title, body)
         x=self._call("/ws/page/%d/notes/update/%d" % (pageId, noteId), data)
 
     def destroy(self, pageId, noteId):
-        """Update an entry."""
+        """Delete a note."""
         x=self._call("/ws/page/%d/notes/destroy/%d" % (pageId, noteId))
 
 class EmailAPI(BackpackAPI):
