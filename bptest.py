@@ -195,5 +195,26 @@ class NotesTest(BaseCase):
         expected=[(263366, 'Test Note', 1124528874.0, 'This is a test note.')]
         self.assertEquals(notes, expected)
 
+class EmailTest(BaseCase):
+    """Test the email code."""
+
+    def testAllEmails(self):
+        """Test parsing the email list."""
+        e=backpack.EmailAPI("x", "y")
+        data=e._parseDocument(self.getFileData("data/emaillist.xml"))
+        emails=e._parseEmails(data)
+        expected=[(17507, 'test backpack email 2', 1124529799.0),
+            (17506, 'test backpack email 1', 1124529776.0)]
+        nobodies=[x[0:-1] for x in emails]
+        self.assertEquals(nobodies, expected)
+
+    def testIndividualEmail(self):
+        """Test parsing an individual email."""
+        e=backpack.EmailAPI("x", "y")
+        data=e._parseDocument(self.getFileData("data/email.xml"))
+        email=e._parseEmails(data)[0]
+        expected=(17507, 'test backpack email 2', 1124529799.0)
+        self.assertEquals(email[0:-1], expected)
+
 if __name__ == '__main__':
     unittest.main()

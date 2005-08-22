@@ -496,6 +496,42 @@ class NoteAPI(PageAPI):
         """Update an entry."""
         x=self._call("/ws/page/%d/notes/destroy/%d" % (pageId, noteId))
 
+class EmailAPI(BackpackAPI):
+    """The backpack Email API"""
+
+    def __init__(self, u, k, debug=False):
+        """Get a ListAPI object to the given URL and key"""
+        BackpackAPI.__init__(self, u, k, debug)
+
+    def _parseEmails(self, x):
+        rv=[]
+        for item in x.getElementsByTagName("email"):
+            rv.append((int(item.getAttribute("id")),
+                str(item.getAttribute("subject")),
+                self._parseTime(item.getAttribute("created_at")),
+                item.firstChild.data))
+        return rv
+
+    def list(self, pageId):
+        """Get a list of the email on the given page.
+
+        list of (id, subject, timestamp, text)
+        """
+        x=self._call("/ws/page/%d/emails/list" % pageId)
+        return self._parseEmails(x)
+
+    def get(self, pageId, mailId):
+        """Get an individual email from the given page.
+
+        (id, subject, timestamp, text)
+        """
+        x=self._call("/ws/page/%d/emails/show/%d" % (pageId, mailId))
+        return self._parseEmails(x)[0]
+
+    def destroy(self, pageId, mailId):
+        """Delete an email."""
+        x=self._call("/ws/page/%d/emails/destroy/%d" % (pageId, mailId))
+
 class Backpack(object):
     """Interface to all of the backpack APIs.
 
@@ -511,6 +547,7 @@ class Backpack(object):
     page=None
     list=None
     notes=None
+    email=None
     export=None
 
     def __init__(self, url, key, debug=False):
@@ -519,4 +556,5 @@ class Backpack(object):
         self.page=PageAPI(url, key, debug)
         self.list=ListAPI(url, key, debug)
         self.notes=NoteAPI(url, key, debug)
+        self.email=EmailAPI(url, key, debug)
         self.export=ExportAPI(url, key, debug)
