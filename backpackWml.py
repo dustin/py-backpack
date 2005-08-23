@@ -79,8 +79,8 @@ def doAdd(bp, fs):
     when=fs["when"].value
     msg=fs["msg"].value
 
-    ts=bp.reminder.getRelativeTime(when)
-    formattedTs=bp.reminder.formatTime(ts)
+    ts=backpack.getRelativeTime(when)
+    formattedTs=backpack.formatTime(ts)
 
     bp.reminder.create(msg, formattedTs)
     sendContent(wml(card("added", "Added Reminder",

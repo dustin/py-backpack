@@ -20,6 +20,75 @@ except NameError:
     True=1
     False=0
 
+TIMEFMT="%Y-%m-%d %H:%M:%S"
+
+def parseTime(timeString):
+    """Parse a timestamp from a backpack response."""
+    return(time.mktime(time.strptime(timeString, TIMEFMT)))
+
+def formatTime(t):
+    """Format a timestamp for an API call"""
+    return(time.strftime(TIMEFMT, time.localtime(t)))
+
+def getRelativeTime(rel, t=None):
+    """Get the time relative to the specified time (default to now).
+
+       Allowed relative terms:
+
+        * fifteen - fifteen minutes from now
+        * nexthour - five minutes after the beginning of the next hour
+        * later - two hours from now
+        * morning - 10:00
+        * afternoon - 14:00
+        * evening - 19:00
+        * coupledays - two days from now
+        * nextweek - seven days from now
+    """
+
+    if t is None:
+        t=time.time()
+
+    now=datetime.datetime.fromtimestamp(t)
+    rv=t
+
+    if rel == 'fifteen':
+        # Fifteen minutes later
+        rv += (15 * 60)
+    elif rel == 'later':
+        # Two hours later
+        rv += 7200
+    elif rel == 'nexthour':
+        # Top of next hour
+        # Increment by an hour
+        rv += 3600
+        # Increment an hour
+        then=datetime.datetime.fromtimestamp(rv)
+        # Then set the hour and minute
+        then=datetime.datetime(then.year, then.month, then.day, then.hour,
+            5, 0)
+        rv=time.mktime(then.timetuple())
+    elif rel == 'morning':
+        then=datetime.datetime(now.year, now.month, now.day, 10, 0, 0)
+        rv=time.mktime(then.timetuple())
+    elif rel == 'afternoon':
+        then=datetime.datetime(now.year, now.month, now.day, 14, 0, 0)
+        rv=time.mktime(then.timetuple())
+    elif rel == 'evening':
+        then=datetime.datetime(now.year, now.month, now.day, 19, 0, 0)
+        rv=time.mktime(then.timetuple())
+    elif rel == 'coupledays':
+        rv=t + (86400 * 2)
+    elif rel == 'nextweek':
+        rv=t + (86400 * 7)
+    else:
+        raise ValueError("Unknown rel type:  " + rel)
+
+    # Make sure the time is in the relative future
+    while rv < t:
+        rv += 86400
+
+    return rv
+
 class BackpackError(exceptions.Exception):
 
     def __init__(self, code, msg):
@@ -32,7 +101,6 @@ class BackpackError(exceptions.Exception):
 class BackpackAPI(object):
     """Interface to the backpack API"""
 
-    TIMEFMT="%Y-%m-%d %H:%M:%S"
     debug=False
     url=None
     key=None
@@ -79,73 +147,6 @@ class BackpackAPI(object):
 
         return self._parseDocument(result)
 
-    # Parse a timestamp
-    def _parseTime(self, timeString):
-        return(time.mktime(time.strptime(timeString, self.TIMEFMT)))
-
-    def getRelativeTime(self, rel, t=None):
-        """Get the time relative to the specified time (default to now).
-
-           Allowed relative terms:
-
-            * fifteen - fifteen minutes from now
-            * nexthour - five minutes after the beginning of the next hour
-            * later - two hours from now
-            * morning - 10:00
-            * afternoon - 14:00
-            * evening - 19:00
-            * coupledays - two days from now
-            * nextweek - seven days from now
-        """
-
-        if t is None:
-            t=time.time()
-
-        now=datetime.datetime.fromtimestamp(t)
-        rv=t
-
-        if rel == 'fifteen':
-            # Fifteen minutes later
-            rv += (15 * 60)
-        elif rel == 'later':
-            # Two hours later
-            rv += 7200
-        elif rel == 'nexthour':
-            # Top of next hour
-            # Increment by an hour
-            rv += 3600
-            # Increment an hour
-            then=datetime.datetime.fromtimestamp(rv)
-            # Then set the hour and minute
-            then=datetime.datetime(then.year, then.month, then.day, then.hour,
-                5, 0)
-            rv=time.mktime(then.timetuple())
-        elif rel == 'morning':
-            then=datetime.datetime(now.year, now.month, now.day, 10, 0, 0)
-            rv=time.mktime(then.timetuple())
-        elif rel == 'afternoon':
-            then=datetime.datetime(now.year, now.month, now.day, 14, 0, 0)
-            rv=time.mktime(then.timetuple())
-        elif rel == 'evening':
-            then=datetime.datetime(now.year, now.month, now.day, 19, 0, 0)
-            rv=time.mktime(then.timetuple())
-        elif rel == 'coupledays':
-            rv=t + (86400 * 2)
-        elif rel == 'nextweek':
-            rv=t + (86400 * 7)
-        else:
-            raise ValueError("Unknown rel type:  " + rel)
-
-        # Make sure the time is in the relative future
-        while rv < t:
-            rv += 86400
-
-        return rv
-
-    def formatTime(self, t):
-        """Format a timestamp for an API call"""
-        return(time.strftime(self.TIMEFMT, time.localtime(t)))
-
 class ReminderAPI(BackpackAPI):
     """Backpack reminder API."""
 
@@ -160,7 +161,7 @@ class ReminderAPI(BackpackAPI):
 
         reminders=document.getElementsByTagName("reminder")
         for r in reminders:
-            timestamp=self._parseTime(r.getAttribute("remind_at"))
+            timestamp=parseTime(r.getAttribute("remind_at"))
             id=int(r.getAttribute("id"))
             message=str(r.firstChild.data)
 
@@ -211,7 +212,7 @@ class ReminderAPI(BackpackAPI):
             "<reminder>%s</reminder>" % (val, ))
         return self._parseReminders(x)
 
-    def delete(self, id):
+    def destroy(self, id):
         """Delete a reminder"""
         x=self._call("/ws/reminders/destroy/%d" % (id,))
 
@@ -268,7 +269,7 @@ class PageAPI(BackpackAPI):
         for note in document.getElementsByTagName("note"):
             rv.append( (int(note.getAttribute("id")),
                 str(note.getAttribute("title")),
-                self._parseTime(note.getAttribute("created_at")),
+                parseTime(note.getAttribute("created_at")),
                 str(note.firstChild.data).strip()))
         return rv
 
@@ -337,7 +338,7 @@ class PageAPI(BackpackAPI):
         p=x.getElementsByTagName("page")[0]
         return (int(p.getAttribute("id")), str(p.getAttribute("title")))
 
-    def delete(self, id):
+    def destroy(self, id):
         """Delete a page"""
         x=self._call("/ws/page/%d/destroy" % (id,))
 
@@ -508,7 +509,7 @@ class EmailAPI(BackpackAPI):
         for item in x.getElementsByTagName("email"):
             rv.append((int(item.getAttribute("id")),
                 str(item.getAttribute("subject")),
-                self._parseTime(item.getAttribute("created_at")),
+                parseTime(item.getAttribute("created_at")),
                 item.firstChild.data))
         return rv
 

@@ -23,47 +23,8 @@ class BaseCase(unittest.TestCase):
         f.close()
         return r
 
-class BackpackAPITest(BaseCase):
-    """Test the base backpack functionality."""
-
-    def setUp(self):
-        self.bp=backpack.Backpack("x", "y")
-
-    def testConstructors(self):
-        """Test the constructors and data work the way I think they do"""
-        bp1=backpack.BackpackAPI("x", "y")
-        self.failIf(bp1.debug, "first debug is set")
-
-        bp2=backpack.BackpackAPI("x", "y", True)
-        self.failUnless(bp2.debug, "second debug is not set")
-        self.failIf(bp1.debug, "first debug is set after second")
-
-        bp3=backpack.BackpackAPI("x", "y")
-        self.failIf(bp3.debug, "third debug is set")
-
-    def testException(self):
-        """Validate exception parsing"""
-        try:
-            bpapi=backpack.BackpackAPI("x", "y")
-            data=bpapi._parseDocument(self.getFileData("data/error404.xml"))
-            self.fail("Parsed 404 error into " + data.toprettyxml())
-        except backpack.BackpackError, e:
-            self.assertEquals(e.code, 404)
-            self.assertEquals(e.msg, "You failed")
-
-    def testTimeParsing(self):
-        """Test the time parser"""
-        bpapi=backpack.BackpackAPI("x", "y")
-        ts=bpapi._parseTime("2005-02-02 13:35:35")
-        self.assertEquals(time.ctime(ts), "Wed Feb  2 13:35:35 2005")
-
-    def testTimeFormatting(self):
-        """Test the time formatter"""
-        # When I wrote this test
-        then=1121847564.8214879
-        bpapi=backpack.BackpackAPI("x", "y")
-        s=bpapi.formatTime(then)
-        self.assertEquals(s, "2005-07-20 01:19:24")
+class UtilTest(unittest.TestCase):
+    """Utility function tests."""
 
     def testRelativeTime(self):
         """Test relative time calculations"""
@@ -76,7 +37,7 @@ class BackpackAPITest(BaseCase):
         evening=1121909413.8556659
 
         # Alias
-        relTime=self.bp.reminder.getRelativeTime
+        relTime=backpack.getRelativeTime
 
         self.assertEquals(time.ctime(relTime("fifteen", earlyMorning)),
             "Wed Jul 20 00:44:22 2005")
@@ -109,8 +70,47 @@ class BackpackAPITest(BaseCase):
         # future.
         now=time.time()
         for rel in ["later", "morning", "afternoon", "coupledays", "nextweek"]:
-            self.failUnless(self.bp.reminder.getRelativeTime(rel) > now, rel)
+            self.failUnless(backpack.getRelativeTime(rel) > now, rel)
 
+    def testTimeParsing(self):
+        """Test the time parser"""
+        ts=backpack.parseTime("2005-02-02 13:35:35")
+        self.assertEquals(time.ctime(ts), "Wed Feb  2 13:35:35 2005")
+
+    def testTimeFormatting(self):
+        """Test the time formatter"""
+        # When I wrote this test
+        then=1121847564.8214879
+        s=backpack.formatTime(then)
+        self.assertEquals(s, "2005-07-20 01:19:24")
+
+class BackpackAPITest(BaseCase):
+    """Test the base backpack functionality."""
+
+    def setUp(self):
+        self.bp=backpack.Backpack("x", "y")
+
+    def testConstructors(self):
+        """Test the constructors and data work the way I think they do"""
+        bp1=backpack.BackpackAPI("x", "y")
+        self.failIf(bp1.debug, "first debug is set")
+
+        bp2=backpack.BackpackAPI("x", "y", True)
+        self.failUnless(bp2.debug, "second debug is not set")
+        self.failIf(bp1.debug, "first debug is set after second")
+
+        bp3=backpack.BackpackAPI("x", "y")
+        self.failIf(bp3.debug, "third debug is set")
+
+    def testException(self):
+        """Validate exception parsing"""
+        try:
+            bpapi=backpack.BackpackAPI("x", "y")
+            data=bpapi._parseDocument(self.getFileData("data/error404.xml"))
+            self.fail("Parsed 404 error into " + data.toprettyxml())
+        except backpack.BackpackError, e:
+            self.assertEquals(e.code, 404)
+            self.assertEquals(e.msg, "You failed")
 
 class ReminderTest(BaseCase):
     """Test reminder-specific stuff."""
