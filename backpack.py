@@ -1,6 +1,19 @@
 #!/usr/bin/env python
 """
-Backpack API
+Interface to the Backpack API as specified at the following location:
+
+    http://www.backpackit.com/api/
+
+Example:
+
+    # Get a specific Page instance.
+    bp=backpack.Backpack("http://yourusername.backpackit.com/",
+        "yourApiKeyAsSeenOnYourAccountPage")
+    thePage=bp.page.get(23852)
+
+    # Schedule a reminder for two hours from now
+    bp.reminder.create("Do this",
+        backpack.formatTime(backpack.getRelativeTime("later")))
 
 Copyright (c) 2005  Dustin Sallings <dustin@spy.net>
 """
