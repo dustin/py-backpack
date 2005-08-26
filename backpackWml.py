@@ -86,9 +86,6 @@ def doAdd(bp, fs):
     sendContent(wml(card("added", "Added Reminder",
         "Added a reminder for %s:  %s" % (time.ctime(ts), msg))))
 
-def doDelete(bp, fs):
-    pass
-
 def handleException(tvt):
     """Print out any exception that may occur."""
     type, value, tb = tvt
@@ -101,7 +98,7 @@ if __name__ == '__main__':
     bp=backpack.Backpack(conf.get("backpack", "url"),
         conf.get("backpack", "key"))
 
-    funcs={"list": doList, "add": doAdd, "delete": doDelete}
+    funcs={"list": doList, "add": doAdd}
 
     action=funcs[fs.getvalue("action", "list")]
 
