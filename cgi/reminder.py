@@ -30,7 +30,7 @@ def getNewForm():
 Message: <input type="text" name="m"/><br/>
 
 <anchor title="Schedule">
-    <go href="/cgi-bin/backpackWml.py?r=%(rnd)d" method="post">
+    <go href="/cgi-bin/bp/reminder.py?r=%(rnd)d" method="post">
         <postfield name="when" value="$(w)"/>
         <postfield name="msg" value="$(m)"/>
         <postfield name="action" value="add"/>
