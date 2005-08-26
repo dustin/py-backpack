@@ -52,20 +52,32 @@ Modifying $n ($i)<br/>
 def getTodoId():
     return int(conf.get('backpack', 'todopage'))
 
-def doList(bp, fs):
-    # Get all of the todo entries that are not complete
-    todo=[x for x in bp.list.list(getTodoId()) if not x[1]]
+def makeList(bp, fs, wantAll=False):
+    # Get all of the todo entries
+    todo=bp.list.list(getTodoId())
+    # If we don't want all of them, limit the list to only incomplete items
+    if not wantAll:
+        todo=[x for x in todo if not x[1]]
     out="Found %d todos:<br/>" % (len(todo))
     for id, complete, text in todo:
-        out += '\n* <anchor>%s<go href="#m">\n' \
+        if complete: mark="x" else: mark="*"
+        out += '\n%s <anchor>%s<go href="#m">\n' \
             '  <setvar name="i" value="%d"/>\n' \
             '  <setvar name="n" value="%s"/></go></anchor><br/>\n' \
-            % (text, id, text)
+            % (mark, text, id, text)
     out+='<br/><a href="#new">Add a todo</a>'
+    if not wantAll:
+        out+='<br/><a href="/cgi-bin/bp/todo.py?action=listAll">Display All</a>'
 
     sendContent(wml(card("todo", "Todo list", out)
         + card("new", "New Todo", getNewForm())
         + card("m", "Modify Todo", getModifyForm())))
+
+def doList(bp, fs):
+    makeList(bp, fs, False)
+
+def doListAll(bp, fs):
+    makeList(bp, fs, True)
 
 def doAdd(bp, fs):
     what=fs["w"].value
@@ -98,4 +110,8 @@ def modify(bp, fs):
     sendContent(wml(card("modified", actions[action][1], actions[action][2])))
 
 if __name__ == '__main__':
-    doCallback({"list": doList, "add": doAdd, "modify": modify})
+    doCallback({
+        "list": doList,
+        "listAll": doListAll,
+        "add": doAdd,
+        "modify": modify})
