@@ -60,7 +60,10 @@ def makeList(bp, fs, wantAll=False):
         todo=[x for x in todo if not x[1]]
     out="Found %d todos:<br/>" % (len(todo))
     for id, complete, text in todo:
-        if complete: mark="x" else: mark="*"
+        if complete:
+            mark="x"
+        else:
+            mark="*"
         out += '\n%s <anchor>%s<go href="#m">\n' \
             '  <setvar name="i" value="%d"/>\n' \
             '  <setvar name="n" value="%s"/></go></anchor><br/>\n' \
