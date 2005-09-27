@@ -113,6 +113,12 @@ class BackpackError(exceptions.Exception):
     def __repr__(self):
         return "<code=%d, msg=%s>" % (self.code, self.msg)
 
+class PageExists(BackpackError):
+    """Exception thrown when an attempt to create a page fails with a 403."""
+
+    def __init__(self, msg):
+        BackpackError.__init__(self, 403, msg)
+
 class BackpackAPI(object):
     """Interface to the backpack API"""
 
@@ -348,7 +354,14 @@ class PageAPI(BackpackAPI):
 
         data="<page><title>%s</title><description>%s</description></page>" \
             % (title, description)
-        x=self._call("/ws/pages/new", data)
+        try:
+            x=self._call("/ws/pages/new", data)
+        except urllib2.HTTPError, e:
+            # A 403 occurs when a page already exists.
+            if e.code == 403:
+                raise PageExists(title)
+            else:
+                raise e
 
         p=x.getElementsByTagName("page")[0]
         return (int(p.getAttribute("id")), unicode(p.getAttribute("title")))
