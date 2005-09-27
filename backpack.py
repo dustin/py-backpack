@@ -103,8 +103,10 @@ def getRelativeTime(rel, t=None):
     return rv
 
 class BackpackError(exceptions.Exception):
+    """Root exception thrown when a backpack error occurs."""
 
     def __init__(self, code, msg):
+        exceptions.Exception.__init__(self)
         self.code=code;
         self.msg=msg
 
