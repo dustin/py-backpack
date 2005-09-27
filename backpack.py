@@ -136,7 +136,7 @@ class BackpackAPI(object):
         if responseEl.getAttribute("success") != "true":
             er=responseEl.getElementsByTagName("error")[0]
             raise BackpackError(int(er.getAttribute("code")),
-                str(er.firstChild.data))
+                unicode(er.firstChild.data))
         return document
 
     # Perform the actual call
@@ -176,7 +176,7 @@ class ReminderAPI(BackpackAPI):
         for r in reminders:
             timestamp=parseTime(r.getAttribute("remind_at"))
             id=int(r.getAttribute("id"))
-            message=str(r.firstChild.data)
+            message=unicode(r.firstChild.data)
 
             rv.append((timestamp, id, message))
 
@@ -262,8 +262,8 @@ class PageAPI(BackpackAPI):
         reminders=document.getElementsByTagName("page")
         for r in reminders:
             id=int(r.getAttribute("id"))
-            scope=str(r.getAttribute("scope"))
-            title=str(r.getAttribute("title"))
+            scope=unicode(r.getAttribute("scope"))
+            title=unicode(r.getAttribute("title"))
 
             rv.append((id, scope, title))
 
@@ -281,9 +281,9 @@ class PageAPI(BackpackAPI):
         rv=[]
         for note in document.getElementsByTagName("note"):
             rv.append( (int(note.getAttribute("id")),
-                str(note.getAttribute("title")),
+                unicode(note.getAttribute("title")),
                 parseTime(note.getAttribute("created_at")),
-                str(note.firstChild.data).strip()))
+                unicode(note.firstChild.data).strip()))
         return rv
 
     # Parse the individual page xml
@@ -296,7 +296,7 @@ class PageAPI(BackpackAPI):
         rv.emailAddress=page.getAttribute("email_address")
 
         desc=page.getElementsByTagName("description")[0]
-        rv.body=str(desc.firstChild.data).strip()
+        rv.body=unicode(desc.firstChild.data).strip()
 
         rv.notes=self._parseNotes(page)
 
@@ -304,7 +304,7 @@ class PageAPI(BackpackAPI):
         def parseItems(n, which, destList):
             for item in self.__linkIter(n, which, "item"):
                 destList.append( (int(item.getAttribute("id")),
-                    str(item.firstChild.data).strip()))
+                    unicode(item.firstChild.data).strip()))
 
         items=page.getElementsByTagName("items")
         if len(items) > 0:
@@ -313,11 +313,11 @@ class PageAPI(BackpackAPI):
 
         for link in self.__linkIter(page, "linked_pages", "page"):
             rv.links.append( (int(link.getAttribute("id")),
-                str(link.getAttribute("title"))))
+                unicode(link.getAttribute("title"))))
 
         for tag in self.__linkIter(page, "tags", "tag"):
             rv.tags.append( (int(tag.getAttribute("id")),
-                str(tag.getAttribute("name"))))
+                unicode(tag.getAttribute("name"))))
 
         return rv
 
@@ -349,7 +349,7 @@ class PageAPI(BackpackAPI):
         x=self._call("/ws/pages/new", data)
 
         p=x.getElementsByTagName("page")[0]
-        return (int(p.getAttribute("id")), str(p.getAttribute("title")))
+        return (int(p.getAttribute("id")), unicode(p.getAttribute("title")))
 
     def destroy(self, id):
         """Delete a page"""
@@ -370,7 +370,7 @@ class PageAPI(BackpackAPI):
         x=self._call("/ws/page/%d/duplicate" % (id,))
 
         p=x.getElementsByTagName("page")[0]
-        return (int(p.getAttribute("id")), str(p.getAttribute("title")))
+        return (int(p.getAttribute("id")), unicode(p.getAttribute("title")))
 
     def linkTo(self, id, linkId):
         """Link a page to another page."""
@@ -443,7 +443,7 @@ class ListAPI(BackpackAPI):
         for item in x.getElementsByTagName("item"):
             rv.append((int(item.getAttribute("id")),
                 item.getAttribute("completed") == "true",
-                str(item.firstChild.data)))
+                unicode(item.firstChild.data)))
         return rv
 
     def list(self, pageId):
@@ -521,7 +521,7 @@ class EmailAPI(BackpackAPI):
         rv=[]
         for item in x.getElementsByTagName("email"):
             rv.append((int(item.getAttribute("id")),
-                str(item.getAttribute("subject")),
+                unicode(item.getAttribute("subject")),
                 parseTime(item.getAttribute("created_at")),
                 item.firstChild.data))
         return rv
@@ -557,7 +557,7 @@ class TagAPI(BackpackAPI):
         rv=[]
         for item in x.getElementsByTagName("page"):
             rv.append((int(item.getAttribute("id")),
-                str(item.getAttribute("title"))))
+                unicode(item.getAttribute("title"))))
         return rv
 
     def pagesForTag(self, tagId):
