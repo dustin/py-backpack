@@ -106,7 +106,7 @@ class BackpackError(exceptions.Exception):
     """Root exception thrown when a backpack error occurs."""
 
     def __init__(self, code, msg):
-        exceptions.Exception.__init__(self)
+        exceptions.Exception.__init__(self, msg)
         self.code=code;
         self.msg=msg
 
