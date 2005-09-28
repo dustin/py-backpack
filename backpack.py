@@ -113,7 +113,7 @@ class BackpackError(exceptions.Exception):
     def __repr__(self):
         return "<code=%d, msg=%s>" % (self.code, self.msg)
 
-class PageExists(BackpackError):
+class PageLimitExceeded(BackpackError):
     """Exception thrown when an attempt to create a page fails with a 403."""
 
     def __init__(self, msg):
@@ -359,7 +359,7 @@ class PageAPI(BackpackAPI):
         except urllib2.HTTPError, e:
             # A 403 occurs when a page already exists.
             if e.code == 403:
-                raise PageExists(title)
+                raise PageLimitExceeded(title)
             else:
                 raise e
 
