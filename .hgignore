@@ -1,7 +1,4 @@
-(^|/)\_darcs($|/)
 (^|/)\.hg($|/)
 (^|/)\.hgtags($|/)
-^backpack.log$
-^backpack.state$
-^backpack.state.old$
-^backpack.state.journal$
+\.pyc$
+\.pyo$
