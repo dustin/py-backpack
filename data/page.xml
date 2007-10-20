@@ -1,27 +1,40 @@
-<?xml version="1.0"?>
 <response success='true'>
-<page title='Ajax Summit' id='1133' email_address='ry87ib@backpackit.com'>
-  <description>With O'Reilly and Adaptive Path</description>
-  <notes>
-    <note title='Hotel' id='1020' created_at='2005-05-14 16:41:11'>
-      Staying at the Savoy
-    </note>
-  </notes>
-  <items>
-    <incomplete>
-      <item id='3308'>See San Francisco</item>
-    </incomplete>
-    <completed>
-      <item id='3303'>Meet interesting people</item>
-      <item id='3307'>Present Backpack</item>
-    </completed>
-  </items>
-  <linked_pages>
-    <page title='Presentations' id='1141' />
-  </linked_pages>
-  <tags>
-    <tag name='Technology' id='4' />
-    <tag name='Travel' id='5' />
-  </tags>
-</page>
+  <page title='Ajax Summit' id='1133' email_address='ry87ib@backpackit.com'>
+    <belongings>
+      <belonging id='783'>
+        <position>1</position>
+        <widget type='Note' id='1019' />
+      </belonging>
+      <belonging id='784'>
+        <position>2</position>
+        <widget type='Note' id='1020' />
+      </belonging>
+      <belonging id='785'>
+        <position>3</position>
+        <widget type='List' id='937' />
+      </belonging>
+    </belongings>
+    <notes>
+      <note title='' id='1019' created_at='2005-05-14 16:39:02'>
+        With O'Reilly and Adaptive Path
+      </note>
+      <note title='Hotel' id='1020' created_at='2005-05-14 16:41:11'>
+        Staying at the Savoy
+      </note>
+    </notes>
+    <lists>
+      <list id='937' name='Trip to SF'>
+        <items>
+          <item id='3308' completed="false">See San Francisco</item>
+          <item id='3303' completed="true">Meet interesting people</item>
+          <item id='3307' completed="true">Present Backpack</item>
+        </items>
+      </list>
+    </lists>
+    <tags>
+      <tag name='Technology' id='4' />
+      <tag name='Travel' id='5' />
+    </tags>
+  </page>
 </response>
+

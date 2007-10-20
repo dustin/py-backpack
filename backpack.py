@@ -121,6 +121,7 @@ def getRelativeTime(rel, t=None):
 
     return rv
 
+
 class BackpackError(exceptions.Exception):
     """Root exception thrown when a backpack error occurs."""
 
@@ -153,6 +154,34 @@ class BackpackAPI(object):
         self.key=k
 
         self.debug=debug
+
+    def _parseListItems(self, document):
+        """Parses list items from from a minidom document
+
+        Returns a list of (id, completed boolean, item text)
+        """
+        rv=[]
+        for item in document.getElementsByTagName("item"):
+            rv.append((int(item.getAttribute("id")),
+                item.getAttribute("completed") == "true",
+                unicode(item.firstChild.data)))
+        return rv
+
+    def _parseLists(self, document):
+        rv=[]
+        for list in document.getElementsByTagName("list"):
+            rv.append( (int(list.getAttribute("id")),
+                unicode(list.getAttribute("name"))) )
+        return rv
+
+    def _parseNotes(self, document):
+        rv=[]
+        for note in document.getElementsByTagName("note"):
+            rv.append( (int(note.getAttribute("id")),
+                unicode(note.getAttribute("title")),
+                parseTime(note.getAttribute("created_at")),
+                unicode(note.firstChild.data).strip()))
+        return rv
 
     # Parse a backpack document, throwing a BackpackError if the document
     # indicates an exception
@@ -260,7 +289,6 @@ class Page(object):
     """An individual page.
 
     * Notes are in the form of (id, title, createdDate, msg).
-    * Complete and incomplete items are in the form of (id, text)
     * Links are in the form of (id, title)
     * Tags are in the form of (id, name)
 
@@ -269,12 +297,39 @@ class Page(object):
     title=None
     id=None
     emailAddress=None
-    body=None
     notes=[]
-    completeItems=[]
-    incompleteItems=[]
-    links=[]
+    lists=[]
     tags=[]
+
+class SearchResult(object):
+    """An individual search result.  The object supports the ability to
+    retrieve it's full representation based on the type of result.  Retrieving
+    a writeboard only returns the id at this point, because no Writeboard
+    API is currently supported"""
+
+    bp=None         # Backpack instance to enable get
+    pageId=None
+    pageTitle=None
+    type=None
+    containerId=None
+
+    def get(self):
+        """Returns the appropriate representation of itself based type
+        
+        list:       Returns the result of Backpack.list.get
+        note:       Returns the result of Backpack.notes.list
+        writeboard: Returns (page id, page title, writeboard id)
+        email:      Returns the result of Backpack.email.get
+        """
+        if self.type == 'list':
+            return self.bp.list.get(self.pageId, self.containerId)
+        elif self.type == 'note':
+            return self.bp.notes.list(self.pageId)
+        elif self.type == 'writeboard_link':
+            return (self.pageId, self.pageTitle, self.containerId)
+        elif self.type == 'email':
+            return self.bp.email.get(self.pageId, self.containerId)
+
 
 class PageAPI(BackpackAPI):
     """Backpack page API."""
@@ -296,6 +351,20 @@ class PageAPI(BackpackAPI):
 
         return rv
 
+    def _parseSearchResult(self, document):
+        rv = []
+        pages = document.getElementsByTagName("page")
+        for p in pages:
+            for send in p.getElementsByTagName("send"):
+                sr = SearchResult()
+                sr.bp = Backpack(self.url, self.key, self.debug)
+                sr.pageId = int(p.getAttribute("id"))
+                sr.pageTitle = unicode(p.getAttribute("title"))
+                sr.type = send.firstChild.data
+                sr.containerId = int(send.getAttribute("id"))
+                rv.append(sr)
+        return rv
+
     # get an iterator on the named node of the zeroth node of the given list
     def __linkIter(self, node, container, elementname):
         rv=[]
@@ -304,14 +373,6 @@ class PageAPI(BackpackAPI):
             rv=nlist[0].getElementsByTagName(elementname)
         return rv
 
-    def _parseNotes(self, document):
-        rv=[]
-        for note in document.getElementsByTagName("note"):
-            rv.append( (int(note.getAttribute("id")),
-                unicode(note.getAttribute("title")),
-                parseTime(note.getAttribute("created_at")),
-                unicode(note.firstChild.data).strip()))
-        return rv
 
     # Parse the individual page xml
     def _parsePage(self, document):
@@ -321,26 +382,8 @@ class PageAPI(BackpackAPI):
         rv.title=page.getAttribute("title")
         rv.id=int(page.getAttribute("id"))
         rv.emailAddress=page.getAttribute("email_address")
-
-        desc=page.getElementsByTagName("description")[0]
-        rv.body=unicode(desc.firstChild.data).strip()
-
         rv.notes=self._parseNotes(page)
-
-        # Parse a task list into a destination list
-        def parseItems(n, which, destList):
-            for item in self.__linkIter(n, which, "item"):
-                destList.append( (int(item.getAttribute("id")),
-                    unicode(item.firstChild.data).strip()))
-
-        items=page.getElementsByTagName("items")
-        if len(items) > 0:
-            parseItems(items[0], "incomplete", rv.incompleteItems)
-            parseItems(items[0], "completed", rv.completeItems)
-
-        for link in self.__linkIter(page, "linked_pages", "page"):
-            rv.links.append( (int(link.getAttribute("id")),
-                unicode(link.getAttribute("title"))))
+        rv.lists=self._parseLists(page)
 
         for tag in self.__linkIter(page, "tags", "tag"):
             rv.tags.append( (int(tag.getAttribute("id")),
@@ -366,13 +409,13 @@ class PageAPI(BackpackAPI):
 
         return self._parsePage(x)
 
-    def create(self, title, description):
+    def create(self, title):
         """Create a new page.
 
            Returns (id, title)"""
 
-        data="<page><title>%s</title><description>%s</description></page>" \
-            % (title, description)
+        data="<page><title>%s</title></page>" \
+            % (title,)
         try:
             x=self._call("/ws/pages/new", data)
         except urllib2.HTTPError, e:
@@ -389,15 +432,19 @@ class PageAPI(BackpackAPI):
         """Delete a page"""
         x=self._call("/ws/page/%d/destroy" % (id,))
 
+    def search(self, term):
+        """Search for pages containing the term
+        
+        Returns a list of (page id, title)
+        """
+        data="<term>%s</term>" % term
+        x = self._call("/ws/pages/search", data)
+        return self._parseSearchResult(x)
+
     def updateTitle(self, id, title):
         """Update a title"""
         data="<page><title>%s</title></page>" % (title,)
         x=self._call("/ws/page/%d/update_title" % (id,), data)
-
-    def updateDescription(self, id, desc):
-        """Update a description"""
-        data="<page><description>%s</description></page>" % (desc,)
-        x=self._call("/ws/page/%d/update_body" % (id,), data)
 
     def duplicate(self, id):
         """Duplicate a page, get the new (id, title)"""
@@ -405,16 +452,6 @@ class PageAPI(BackpackAPI):
 
         p=x.getElementsByTagName("page")[0]
         return (int(p.getAttribute("id")), unicode(p.getAttribute("title")))
-
-    def linkTo(self, id, linkId):
-        """Link a page to another page."""
-        data="<linked_page_id>%d</linked_page_id>" % (linkId,)
-        x=self._call("/ws/page/%d/link" % (id,), data)
-
-    def unlink(self, id, linkId):
-        """Unlink a page from another page."""
-        data="<linked_page_id>%d</linked_page_id>" % (linkId,)
-        x=self._call("/ws/page/%d/unlink" % (id,), data)
 
     def share(self, id, emailAddresses=[], isPublic=False):
         """Share this page with others."""
@@ -457,7 +494,41 @@ class ExportAPI(PageAPI, ReminderAPI):
 
         return(self._parseBackup(x))
 
+
 class ListAPI(BackpackAPI):
+    """Backpack list API."""
+
+    def __init__(self, u, k, debug=False):
+        """Get a ListAPI object to the given URL and key"""
+        BackpackAPI.__init__(self, u, k, debug)
+
+    def create(self, pageId, name):
+        """Creates a new list on the given page
+
+        Returns (id, name)
+        """
+        data = "<name>%s</name>" % name
+        x = self._call("/ws/page/%d/lists/add" % pageId, data)
+        l = x.getElementsByTagName("list")[0]
+        return ( int(l.getAttribute("id")), unicode(l.getAttribute("name")) )
+
+    def update(self, pageId, listId, name):
+        """Changes a list's name"""
+        data = "<list><name>%s</name></list>" % name
+        self._call("/ws/page/%d/lists/update/%d" % (pageId, listId), data)
+
+    def destroy(self, pageId, listId):
+        self._call("/ws/page/%d/lists/destroy/%d" % (pageId, listId))
+
+    def list(self, pageId):
+        """Get a list of lists on the given page
+        
+        list of (id, name)
+        """
+        x = self._call("/ws/page/%d/lists/list" % pageId)
+        return self._parseLists(x)
+    
+class ListItemAPI(BackpackAPI):
     """Backpack list API."""
 
     MOVE_LOWER='move_lower'
@@ -472,53 +543,53 @@ class ListAPI(BackpackAPI):
         """Get a ListAPI object to the given URL and key"""
         BackpackAPI.__init__(self, u, k, debug)
 
-    def _parseList(self, x):
-        rv=[]
-        for item in x.getElementsByTagName("item"):
-            rv.append((int(item.getAttribute("id")),
-                item.getAttribute("completed") == "true",
-                unicode(item.firstChild.data)))
-        return rv
-
-    def list(self, pageId):
-        """Get a list of the items on the given page.
+    def list(self, pageId, listId):
+        """Get a list of the items on the given list.
 
         list of (id, completedBoolean, text)
         """
-        x=self._call("/ws/page/%d/items/list" % pageId)
-        return self._parseList(x)
+        x=self._call("/ws/page/%d/lists/%d/items/list" % (pageId, listId))
+        return self._parseListItems(x)
 
-    def create(self, pageId, text):
+    def create(self, pageId, listId, text):
         """Create a new entry.
         Return (id, completedBoolean, text)"""
         data="<item><content>%s</content></item>" % (text,)
-        x=self._call("/ws/page/%d/items/add" % (pageId,), data)
-        return self._parseList(x)[0]
+        x=self._call("/ws/page/%d/lists/%d/items/add" % (pageId, listId), data)
+        return self._parseListItems(x)[0]
 
-    def update(self, pageId, id, text):
+    def update(self, pageId, listId, id, text):
         """Update an entry."""
         data="<item><content>%s</content></item>" % (text,)
-        x=self._call("/ws/page/%d/items/update/%d" % (pageId, id), data)
+        x=self._call("/ws/page/%d/lists/%d/items/update/%d" % 
+                     (pageId, listId, id), data)
 
-    def toggle(self, pageId, id):
+    def toggle(self, pageId, listId, id):
         """Toggle an entry."""
-        x=self._call("/ws/page/%d/items/toggle/%d" % (pageId, id))
+        x=self._call("/ws/page/%d/lists/%d/items/toggle/%d" % 
+                     (pageId, listId, id))
 
-    def destroy(self, pageId, id):
+    def destroy(self, pageId, listId, id):
         """Destroy an entry."""
-        x=self._call("/ws/page/%d/items/destroy/%d" % (pageId, id))
+        x=self._call("/ws/page/%d/lists/%d/items/destroy/%d" % 
+                (pageId, listId, id))
 
-    def move(self, pageId, id, direction):
-        """Move an entry."""
+    def move(self, pageId, listId, id, direction):
+        """Move an entry.
+        
+        direction can be 'move_lower', 'move_higher', 
+                         'move_to_top', and 'move_to_bottom'
+        """
         data="<direction>%s</direction>" % (direction,)
-        x=self._call("/ws/page/%d/items/move/%d" % (pageId, id), data)
+        x=self._call("/ws/page/%d/lists/%d/items/move/%d" % 
+                (pageId, listId, id), data)
 
-class NoteAPI(PageAPI):
+class NoteAPI(BackpackAPI):
     """API to Backpack Notes for a page."""
 
     def __init__(self, u, k, debug=False):
         """Get a NoteAPI object to the given URL and key"""
-        PageAPI.__init__(self, u, k, debug)
+        BackpackAPI.__init__(self, u, k, debug)
 
     def list(self, pageId):
         """Get a list of the items on the given page.
@@ -644,6 +715,7 @@ class Backpack(object):
         self.reminder=ReminderAPI(url, key, debug)
         self.page=PageAPI(url, key, debug)
         self.list=ListAPI(url, key, debug)
+        self.listItem=ListItemAPI(url, key, debug)
         self.notes=NoteAPI(url, key, debug)
         self.email=EmailAPI(url, key, debug)
         self.tags=TagAPI(url, key, debug)

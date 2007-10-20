@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response success='true'>
+  <items>
+    <item id='1' list_id='1' completed='false'>Hello world!</item>
+    <item id='2' list_id='1' completed='false'>More world!</item>
+    <item id='3' list_id='1' completed='true'>Done world!</item>
+  </items>
+</response>
+

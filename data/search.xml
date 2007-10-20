@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<response success='true'>
+  <pages>
+    <page title='Haystack' id='1134'>
+        <send id="33469">note</send>
+    </page>
+    <page title='Sewing' id='2482'>
+        <send id="34263">list</send>
+    </page>
+  </pages>
+</response>
+

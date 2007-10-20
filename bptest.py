@@ -110,7 +110,7 @@ class BackpackAPITest(BaseCase):
             self.fail("Parsed 404 error into " + data.toprettyxml())
         except backpack.BackpackError, e:
             self.assertEquals(e.code, 404)
-            self.assertEquals(e.msg, "You failed")
+            self.assertEquals(e.msg, "Record not found")
 
 class ReminderTest(BaseCase):
     """Test reminder-specific stuff."""
@@ -143,17 +143,28 @@ class PageTest(BaseCase):
         self.assertEquals(rv.title, 'Ajax Summit')
         self.assertEquals(rv.id, 1133)
         self.assertEquals(rv.emailAddress, 'ry87ib@backpackit.com')
-        self.assertEquals(rv.body,
-            "With O'Reilly and Adaptive Path")
-        self.assertEquals(rv.notes, [(1020, 'Hotel',
-            1116114071.0, 'Staying at the Savoy')])
-        self.assertEquals(rv.incompleteItems, [(3308, 'See San Francisco')])
-        self.assertEquals(rv.completeItems, [
-            (3303, 'Meet interesting people'),
-            (3307, 'Present Backpack'), ])
-        self.assertEquals(rv.links, [(1141, 'Presentations')])
+        self.assertEquals(rv.notes, 
+                [(1019, '', 1116114071.0, "With O'Reilly and AdaptivePath"),
+                 (1020, 'Hotel', 1116106871.0, "Staying at the Savoy")])
+        self.assertEquals(rv.lists, [(937,'Trip to SF')])
         self.assertEquals(rv.tags, [(4, 'Technology'),
             (5, 'Travel')])
+
+    def testSearchResultParser(self):
+        """Test the search result parser"""
+        page = backpack.PageAPI("x", "y")
+        data = page._parseDocument(self.getFileData("data/search.xml"))
+        rv = page._parseSearchResult(data)
+
+        self.assertEquals(len(rv), 2)
+        self.assertEquals(rv[0].pageId, 1134)
+        self.assertEquals(rv[0].pageTitle, "Haystack")
+        self.assertEquals(rv[0].type, "note")
+        self.assertEquals(rv[0].containerId, 33469)
+        self.assertEquals(rv[1].pageId, 2482)
+        self.assertEquals(rv[1].pageTitle, "Sewing")
+        self.assertEquals(rv[1].type, "list")
+        self.assertEquals(rv[1].containerId, 34263)
 
 class ExportTest(BaseCase):
     """Test the backup code."""
@@ -173,16 +184,30 @@ class ExportTest(BaseCase):
         gotReminderIds=[x[1] for x in reminders]
         self.assertEquals(gotReminderIds, expectedReminderIds)
 
+
+class ListItemTest(BaseCase):
+    """Test the list item code"""
+    
+    def testListItemParser(self):
+        """Test the list item parser"""
+        li=backpack.ListItemAPI("x", "y")
+        data = li._parseDocument(self.getFileData("data/listitem.xml"))
+        actual = li._parseListItems(data)
+        expected = [(1, False, "Hello world!"), 
+                    (2, False, "More world!"),
+                    (3, True, "Done world!")]
+        self.assertEquals(actual, expected)
+        
 class ListTest(BaseCase):
     """Test the list code."""
 
-    def testListParser(self):
-        """Test the list lister."""
+    def testListListParser(self):
+        """Test parsing the List list"""
         l=backpack.ListAPI("x", "y")
         data=l._parseDocument(self.getFileData("data/list.xml"))
-        items=l._parseList(data)
-        self.assertEquals(len([i for i in items if not i[1]]), 19)
-        self.assertEquals(len([i for i in items if i[1]]), 1)
+        gotLists=l._parseLists(data)
+        expectedLists = [(1, "greetings"), (2, "goodbyes")]
+        self.assertEquals(gotLists, expectedLists)
 
 class NotesTest(BaseCase):
     """Test the notes code."""
@@ -204,8 +229,8 @@ class EmailTest(BaseCase):
         e=backpack.EmailAPI("x", "y")
         data=e._parseDocument(self.getFileData("data/emaillist.xml"))
         emails=e._parseEmails(data)
-        expected=[(17507, 'test backpack email 2', 1124529799.0),
-            (17506, 'test backpack email 1', 1124529776.0)]
+        expected=[(17507, 'test backpack email 2', 1124522599.0),
+            (17506, 'test backpack email 1', 1124522576.0)]
         nobodies=[x[0:-1] for x in emails]
         self.assertEquals(nobodies, expected)
 
@@ -214,7 +239,7 @@ class EmailTest(BaseCase):
         e=backpack.EmailAPI("x", "y")
         data=e._parseDocument(self.getFileData("data/email.xml"))
         email=e._parseEmails(data)[0]
-        expected=(17507, 'test backpack email 2', 1124529799.0)
+        expected=(17507, 'test backpack email 2', 1124522599.0)
         self.assertEquals(email[0:-1], expected)
 
 class TagTest(BaseCase):
