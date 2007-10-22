@@ -2,7 +2,7 @@
 """
 Interface to the Backpack API as specified at the following location:
 
-    http://www.backpackit.com/api/
+    http://developer.37signals.com/backpack/
 
 Example:
 
