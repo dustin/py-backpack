@@ -6,6 +6,7 @@ Copyright (c) 2005  Dustin Sallings <dustin@spy.net>
 """
 # arch-tag: 0BCECE3E-2629-498A-A897-C66F6DC41EB4
 
+import os
 import sys
 import time
 import unittest
@@ -13,6 +14,10 @@ import exceptions
 import xml.dom.minidom
 
 import backpack
+
+# These tests all assume you're in California.
+os.environ['TZ']='US/Pacific'
+time.tzset()
 
 class BaseCase(unittest.TestCase):
     """Base case for all test cases."""
