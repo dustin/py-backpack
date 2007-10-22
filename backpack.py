@@ -303,7 +303,7 @@ class Page(object):
 
 class SearchResult(object):
     """An individual search result.  The object supports the ability to
-    retrieve it's full representation based on the type of result.  Retrieving
+    retrieve its full representation based on the type of result.  Retrieving
     a writeboard only returns the id at this point, because no Writeboard
     API is currently supported"""
 
