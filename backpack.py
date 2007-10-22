@@ -435,7 +435,7 @@ class PageAPI(BackpackAPI):
     def search(self, term):
         """Search for pages containing the term
         
-        Returns a list of (page id, title)
+        Returns a list of SearchResult objects.
         """
         data="<term>%s</term>" % term
         x = self._call("/ws/pages/search", data)
