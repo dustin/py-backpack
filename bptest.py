@@ -16,7 +16,7 @@ import xml.dom.minidom
 import backpack
 
 # These tests all assume you're in California.
-os.environ['TZ']='US/Pacific'
+os.environ['TZ']='America/Los_Angeles'
 time.tzset()
 
 class BaseCase(unittest.TestCase):
