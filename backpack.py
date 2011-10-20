@@ -204,7 +204,7 @@ class BackpackAPI(object):
         if self.debug:
             print ">>(%s)\n%s" % (theUrl, reqData)
 
-        req=urllib2.Request(theUrl, reqData, {'X-POST_DATA_FORMAT': 'xml'})
+        req=urllib2.Request(theUrl, reqData, {'Content-Type': 'application/xml'})
         opener=urllib2.build_opener()
 
         o=opener.open(req)
