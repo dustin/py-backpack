@@ -177,10 +177,14 @@ class BackpackAPI(object):
     def _parseNotes(self, document):
         rv=[]
         for note in document.getElementsByTagName("note"):
+            try:
+                childData = unicode(note.firstChild.data).strip()
+            except AttributeError:
+                childData = ''
             rv.append( (int(note.getAttribute("id")),
                 unicode(note.getAttribute("title")),
                 parseTime(note.getAttribute("created_at")),
-                unicode(note.firstChild.data).strip()))
+                childData))
         return rv
 
     # Parse a backpack document, throwing a BackpackError if the document
